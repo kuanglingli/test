@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>情绪内耗深度测评 · 4维能量漏电诊断</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Google Fonts: Noto Sans SC & Inter 提升中文与数字高级质感 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans SC"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            num: ['Inter', '"Noto Sans SC"', 'sans-serif'],
+          },
+          colors: {
+            cream: {
+              50: '#FDFBF7',
+              100: '#F8F4EC',
+              200: '#EFE8DA',
+            },
+            charcoal: {
+              900: '#2A2927',
+              700: '#4A4845',
+              500: '#78746E',
+              300: '#ABA69E',
+            },
+            mist: {
+              50: '#F5F3F9',
+              100: '#EAE5F3',
+              200: '#D4CAE6',
+              500: '#8E7DB3',
+              600: '#75639B',
+            },
+            sage: {
+              50: '#F2F6F3',
+              100: '#E2ECE5',
+              500: '#6D8F79',
+              600: '#557561',
+            },
+            apricot: {
+              50: '#FDF6F0',
+              100: '#F9E9DC',
+              500: '#D48A5E',
+              600: '#B87147',
+            }
+          },
+          boxShadow: {
+            'soft': '0 10px 40px -10px rgba(42, 41, 39, 0.06)',
+            'card': '0 4px 20px -2px rgba(42, 41, 39, 0.04)',
+            'glow': '0 8px 25px -4px rgba(142, 125, 179, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* 基础疗愈风格与动画定义 */
+    body {
+      background-color: #FDFBF7;
+      color: #2A2927;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* 背景柔和光晕装饰 */
+    .ambient-blob {
+      position: fixed;
+      border-radius: 9999px;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      transition: all 1.2s ease;
+    }
+
+    /* 页面切换淡入上浮动画 */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-up {
+      animation: fadeSlideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* 题目卡片切换微动画 */
+    @keyframes questionEnter {
+      from {
+        opacity: 0;
+        transform: translateX(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-question {
+      animation: questionEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* 呼吸律动圆环（用于分析过渡页） */
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    .animate-breathe {
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    /* 自定义优雅滚动条 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FDFBF7;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E2DDD5;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-mist-100 selection:text-mist-600">
+
+  <!-- 背景氛围光晕 -->
+  <div class="ambient-blob w-72 h-72 bg-mist-100 top-[-40px] left-[-60px]"></div>
+  <div class="ambient-blob w-80 h-80 bg-apricot-100 bottom-[10%] right-[-80px]"></div>
+  <div class="ambient-blob w-64 h-64 bg-sage-100 top-[40%] left-[15%] opacity-40"></div>
+
+  <!-- 顶部全局导航/标题区 -->
+  <header class="relative z-10 w-full max-w-2xl mx-auto px-5 pt-7 pb-3 flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-mist-500"></span>
+        <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-charcoal-900">情绪内耗深度测评</h1>
+      </div>
+      <p class="text-xs sm:text-sm text-charcoal-500 mt-0.5">基于近 2～4 周真实状态的 4 维能量漏电诊断</p>
+    </div>
+
+    <!-- 快捷重置按钮（仅在答题或报告页显示） -->
+    <button id="headerResetBtn" onclick="confirmReset()" class="hidden text-xs font-medium text-charcoal-500 hover:text-charcoal-900 bg-white/80 hover:bg-white border border-cream-200 px-3 py-1.5 rounded-full transition-all shadow-sm flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>重测</span>
+    </button>
+  </header>
+
+  <!-- 主内容容器 -->
+  <main class="relative z-10 flex-1 w-full max-w-2xl mx-auto px-5 py-4 flex flex-col justify-center">
+
+    <!-- ==================== 视图 1：引导首页 ==================== -->
+    <section id="view-intro" class="animate-fade-up">
+      <div class="bg-white/90 backdrop-blur-md border border-cream-200/80 rounded-3xl p-6 sm:p-9 shadow-soft">
+        <!-- 顶部疗愈标签 -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-mist-50 text-mist-600 text-xs font-medium mb-5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>20 题 · 约 3 分钟 · 4 维能量图谱诊断</span>
+        </div>
+
+        <h2 class="text-2xl sm:text-3xl font-semibold text-charcoal-900 leading-snug mb-3">
+          觉察隐形的能量漏电口，<br class="hidden sm:inline" />把心力还给自己
+        </h2>
+        <p class="text-sm sm:text-base text-charcoal-700 leading-relaxed mb-7">
+          很多时候我们的疲惫并非源于事情本身，而是大脑在无数个细微瞬间的“空转”与“过载”。请结合你<strong class="font-medium text-charcoal-900">近 2～4 周的真实状态</strong>作答，系统将为你生成专属能量诊断与低成本止损指南。
+        </p>
+
+        <!-- 四个维度预览卡片网格 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-mist-50/70 border border-mist-100/80">
+            <span class="w-7 h-7 rounded-xl bg-mist-500 text-white text-xs font-num font-semibold flex items-center justify-center shrink-0 mt-0.5">D1</span>
+            <div>
+              <h3 class="text-sm font-semibold text-charcoal-900">反刍与脑内预演</h3>
+              <p class="text-xs text-charcoal-500 mt-0.5">事前反复彩排、事后循环回放的思绪空转</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-apricot-50/70 border border-apricot-100/80">
+            <span class="w-7 h-7 rounded-xl bg-apricot-500 text-white text-xs font-num font-semibold flex items-center justify-center shrink-0 mt-0.5">D2</span>
+            <div>
+              <h3 class="text-sm font-semibold text-charcoal-900">边界与讨好承压</h3>
+              <p class="text-xs text-charcoal-500 mt-0.5">过度体察他人情绪、委屈自己维持和谐</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-sage-50/70 border border-sage-100/80">
+            <span class="w-7 h-7 rounded-xl bg-sage-500 text-white text-xs font-num font-semibold flex items-center justify-center shrink-0 mt-0.5">D3</span>
+            <div>
+              <h3 class="text-sm font-semibold text-charcoal-900">决策与完美主义卡点</h3>
+              <p class="text-xs text-charcoal-500 mt-0.5">纠结最优解、行动门槛过高导致的启动拖延</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-cream-100/80 border border-cream-200/80">
+            <span class="w-7 h-7 rounded-xl bg-charcoal-700 text-white text-xs font-num font-semibold flex items-center justify-center shrink-0 mt-0.5">D4</span>
+            <div>
+              <h3 class="text-sm font-semibold text-charcoal-900">能量回血与断电信号</h3>
+              <p class="text-xs text-charcoal-500 mt-0.5">社交断电、报复性熬夜与休息越歇越累</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 开始测评按钮 -->
+        <button onclick="startQuiz()" class="w-full py-4 px-6 rounded-2xl bg-charcoal-900 hover:bg-charcoal-700 active:scale-[0.99] text-white font-medium text-base shadow-soft transition-all flex items-center justify-center gap-2 group">
+          <span>开始测评</span>
+          <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+        <p class="text-center text-xs text-charcoal-300 mt-3.5">答案无对错之分 · 凭第一直觉作答最准确</p>
+      </div>
+    </section>
+
+    <!-- ==================== 视图 2：答题交互页 ==================== -->
+    <section id="view-quiz" class="hidden">
+      <!-- 顶部进度与维度提示 -->
+      <div class="mb-4 px-1">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span id="quizDimensionTag" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-mist-50 text-mist-600 font-medium border border-mist-100">
+            维度一：反刍与脑内预演
+          </span>
+          <span class="font-num font-semibold text-charcoal-700">
+            <span id="quizCurrentNum" class="text-base text-charcoal-900">1</span>
+            <span class="text-charcoal-300"> / 20</span>
+          </span>
+        </div>
+        <!-- 平滑进度条 -->
+        <div class="w-full h-2 bg-cream-200/80 rounded-full overflow-hidden">
+          <div id="quizProgressBar" class="h-full bg-gradient-to-r from-mist-500 to-sage-500 rounded-full transition-all duration-300 ease-out" style="width: 5%;"></div>
+        </div>
+      </div>
+
+      <!-- 题目卡片 -->
+      <div id="questionCard" class="bg-white/95 backdrop-blur-md border border-cream-200/90 rounded-3xl p-6 sm:p-8 shadow-soft">
+        <div class="min-h-[84px] sm:min-h-[96px] flex items-center mb-6">
+          <h2 id="questionText" class="text-lg sm:text-xl font-medium text-charcoal-900 leading-relaxed">
+            1. 结束一段聊天或会议后，脑子里还会反复回放刚才的话，琢磨“我是不是说错了”。
+          </h2>
+        </div>
+
+        <!-- A/B/C/D 选项列表 -->
+        <div id="optionsContainer" class="space-y-3">
+          <!-- 动态生成选项按钮 -->
+        </div>
+
+        <!-- 底部导航栏：上一题 / 查看报告 -->
+        <div class="mt-7 pt-5 border-t border-cream-100 flex items-center justify-between">
+          <button id="prevBtn" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl text-sm font-medium text-charcoal-500 hover:text-charcoal-900 hover:bg-cream-100 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>上一题</span>
+          </button>
+
+          <!-- 最后一题且已作答时显示手动提交按钮（同时保留自动跳转体验） -->
+          <button id="submitReportBtn" onclick="finishQuiz()" class="hidden px-5 py-2.5 rounded-xl bg-mist-500 hover:bg-mist-600 text-white text-sm font-medium shadow-glow transition-all flex items-center gap-1.5">
+            <span>查看专属诊断报告</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <span id="autoHintText" class="text-xs text-charcoal-300">点击选项自动进入下一题</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 视图 2.5：能量图谱计算过渡页 ==================== -->
+    <section id="view-analyzing" class="hidden text-center py-12">
+      <div class="bg-white/90 backdrop-blur-md border border-cream-200 rounded-3xl p-10 shadow-soft max-w-md mx-auto">
+        <div class="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full bg-mist-100 animate-breathe"></div>
+          <div class="relative w-12 h-12 rounded-full bg-mist-500/20 flex items-center justify-center text-mist-600">
+            <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-lg font-semibold text-charcoal-900 mb-2">正在绘制你的 4 维能量图谱…</h3>
+        <p class="text-xs text-charcoal-500">正在定位核心漏电维度与定制化回血处方</p>
+      </div>
+    </section>
+
+    <!-- ==================== 视图 3：完整诊断报告页 ==================== -->
+    <section id="view-report" class="hidden space-y-5 pb-10">
+      
+      <!-- 1. 核心结果总览卡片 -->
+      <div class="bg-white/95 backdrop-blur-md border border-cream-200 rounded-3xl p-6 sm:p-8 shadow-soft relative overflow-hidden">
+        <!-- 顶部装饰色条 -->
+        <div id="reportAccentBar" class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-mist-500 via-apricot-500 to-sage-500"></div>
+
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-xs font-medium text-charcoal-500 tracking-wider uppercase">主内耗类型诊断</span>
+          <!-- 代号徽章 -->
+          <span id="reportCodeBadge" class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-semibold bg-mist-100 text-mist-600">
+            代号：剧场导演
+          </span>
+          <!-- 双核叠加徽章（若有并列最高分则显示） -->
+          <span id="reportDualBadge" class="hidden inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-medium bg-apricot-100 text-apricot-600">
+            双核叠加
+          </span>
+        </div>
+
+        <h2 id="reportTypeName" class="text-2xl sm:text-3xl font-bold text-charcoal-900 tracking-tight mb-5">
+          《脑内预演型内耗者》
+        </h2>
+
+        <!-- 核心数据三栏指标卡 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- 综合得分 -->
+          <div class="p-4 rounded-2xl bg-cream-50 border border-cream-200/80">
+            <div class="text-xs text-charcoal-500 mb-1">内耗综合得分</div>
+            <div class="flex items-baseline gap-1">
+              <span id="reportTotalScore" class="text-2xl font-num font-bold text-charcoal-900">42</span>
+              <span class="text-xs font-num text-charcoal-500">/ 80 分</span>
+            </div>
+            <div id="reportLevelTag" class="inline-block mt-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-apricot-100 text-apricot-600">
+              中度内耗 · 偷偷掉电期
+            </div>
+          </div>
+
+          <!-- 最大漏电维度 -->
+          <div class="p-4 rounded-2xl bg-cream-50 border border-cream-200/80 sm:col-span-2 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-charcoal-500 mb-1">最大漏电维度</div>
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <span id="reportMaxDimName" class="text-lg font-semibold text-charcoal-900">反刍与脑内预演（D1）</span>
+                <span id="reportMaxDimScore" class="text-lg font-num font-bold text-mist-600">16 / 20 分</span>
+              </div>
+            </div>
+            <p id="reportLevelDesc" class="text-xs text-charcoal-500 mt-2">
+              多个日常信号叠加，精力被持续分散。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 一、核心画像定调 -->
+      <div class="bg-white/95 backdrop-blur-md border border-cream-200 rounded-3xl p-6 sm:p-7 shadow-card">
+        <div class="flex items-center gap-2.5 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-mist-100 text-mist-600 text-xs font-bold flex items-center justify-center">一</span>
+          <h3 class="text-base sm:text-lg font-semibold text-charcoal-900">核心画像定调</h3>
+        </div>
+        <p id="reportCorePersona" class="text-sm sm:text-[15px] text-charcoal-700 leading-relaxed bg-cream-50/70 p-4 rounded-2xl border border-cream-100">
+          <!-- 动态填充 -->
+        </p>
+      </div>
+
+      <!-- 3. 二、4 维能量消耗图谱（SVG 雷达图 + 横向进度条） -->
+      <div class="bg-white/95 backdrop-blur-md border border-cream-200 rounded-3xl p-6 sm:p-7 shadow-card">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-lg bg-sage-100 text-sage-600 text-xs font-bold flex items-center justify-center">二</span>
+            <h3 class="text-base sm:text-lg font-semibold text-charcoal-900">4 维能量消耗图谱</h3>
+          </div>
+          <span class="text-xs text-charcoal-300">单维满分 20 分</span>
+        </div>
+
+        <!-- SVG 雷达图容器 -->
+        <div class="w-full flex justify-center my-2">
+          <svg id="radarSvg" viewBox="0 0 360 280" class="w-full max-w-[340px] h-auto overflow-visible">
+            <!-- 由 JS 动态绘制精致雷达图 -->
+          </svg>
+        </div>
+
+        <!-- 4 维详细进度条列表 -->
+        <div id="dimensionBarsContainer" class="space-y-4 mt-4 pt-4 border-t border-cream-100">
+          <!-- 动态生成 D1~D4 进度条与解析 -->
+        </div>
+      </div>
+
+      <!-- 4. 三、2 个高频触发场景 -->
+      <div class="bg-white/95 backdrop-blur-md border border-cream-200 rounded-3xl p-6 sm:p-7 shadow-card">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="w-6 h-6 rounded-lg bg-apricot-100 text-apricot-600 text-xs font-bold flex items-center justify-center">三</span>
+          <h3 class="text-base sm:text-lg font-semibold text-charcoal-900">2 个高频触发场景</h3>
+        </div>
+        <div id="reportTriggersContainer" class="space-y-3">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+
+      <!-- 5. 四、2 个容易忽略的隐形盲点 -->
+      <div class="bg-white/95 backdrop-blur-md border border-cream-200 rounded-3xl p-6 sm:p-7 shadow-card">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="w-6 h-6 rounded-lg bg-cream-200 text-charcoal-700 text-xs font-bold flex items-center justify-center">四</span>
+          <h3 class="text-base sm:text-lg font-semibold text-charcoal-900">2 个容易忽略的隐形盲点</h3>
+        </div>
+        <div id="reportBlindspotsContainer" class="space-y-3">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+
+      <!-- 6. 五、3 条低成本止损与回血建议 -->
+      <div class="bg-gradient-to-br from-sage-50/90 via-white to-mist-50/70 border border-sage-100 rounded-3xl p-6 sm:p-7 shadow-card">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span class="w-6 h-6 rounded-lg bg-sage-500 text-white text-xs font-bold flex items-center justify-center">五</span>
+          <h3 class="text-base sm:text-lg font-semibold text-charcoal-900">3 条低成本止损与回血建议</h3>
+        </div>
+        <div id="reportSuggestionsContainer" class="space-y-3.5">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+
+      <!-- 7. 底部操作区：保存/复制报告 & 重新测试 -->
+      <div class="pt-2 flex flex-col sm:flex-row gap-3">
+        <button onclick="copyReportText()" class="flex-1 py-3.5 px-5 rounded-2xl bg-charcoal-900 hover:bg-charcoal-700 active:scale-[0.99] text-white font-medium text-sm shadow-soft transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+          </svg>
+          <span>保存 / 复制完整报告文本</span>
+        </button>
+
+        <button onclick="resetAll(true)" class="py-3.5 px-6 rounded-2xl bg-white hover:bg-cream-100 border border-cream-200 text-charcoal-700 font-medium text-sm transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>重新测试</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部极简页脚 -->
+  <footer class="relative z-10 w-full max-w-2xl mx-auto px-5 py-5 text-center text-xs text-charcoal-300">
+    愿你拥有随时给大脑按下暂停键的温柔与底气
+  </footer>
+
+  <!-- 自定义轻提示 Toast（替代 alert） -->
+  <div id="toastMessage" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-2">
+    <div class="bg-charcoal-900/95 text-white text-xs sm:text-sm px-5 py-3 rounded-full shadow-lg flex items-center gap-2 backdrop-blur-sm">
+      <svg class="w-4 h-4 text-sage-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toastText">已复制完整诊断报告文本</span>
+    </div>
+  </div>
+
+  <!-- 自定义重测确认弹窗（替代 confirm） -->
+  <div id="resetModal" class="hidden fixed inset-0 z-50 bg-charcoal-900/30 backdrop-blur-xs flex items-center justify-center p-5">
+    <div class="bg-white border border-cream-200 rounded-3xl p-6 max-w-xs w-full shadow-soft animate-fade-up">
+      <h4 class="text-base font-semibold text-charcoal-900 mb-2">确认重新开始测评？</h4>
+      <p class="text-xs text-charcoal-500 leading-relaxed mb-5">当前作答进度与结果将被清空，你可以重新根据近期状态进行评估。</p>
+      <div class="flex gap-2.5">
+        <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-charcoal-700 text-xs font-medium transition-colors">
+          继续当前
+        </button>
+        <button onclick="resetAll(true)" class="flex-1 py-2.5 rounded-xl bg-charcoal-900 hover:bg-charcoal-700 text-white text-xs font-medium transition-colors">
+          确认重测
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ==========================================
+     * 1. 完整 20 题测评题库与维度元数据配置
+     * ==========================================
+     */
+    const DIMENSIONS_META = {
+      D1: {
+        id: 'D1',
+        shortName: '反刍与脑内预演',
+        fullName: '维度一：反刍与脑内预演',
+        radarLabel: '反刍与预演',
+        desc: '核心消耗源，习惯提前彩排场景、事后反复回放对话。',
+        color: '#8E7DB3', // 柔雾紫
+        bgClass: 'bg-mist-500',
+        lightBgClass: 'bg-mist-50',
+        textClass: 'text-mist-600'
+      },
+      D2: {
+        id: 'D2',
+        shortName: '边界与讨好承压',
+        fullName: '维度二：边界与讨好承压',
+        radarLabel: '边界与讨好',
+        desc: '反映你在人际互动中为顾虑他人情绪而付出的隐性成本。',
+        color: '#D48A5E', // 暖杏色
+        bgClass: 'bg-apricot-500',
+        lightBgClass: 'bg-apricot-50',
+        textClass: 'text-apricot-600'
+      },
+      D3: {
+        id: 'D3',
+        shortName: '决策与完美主义卡点',
+        fullName: '维度三：决策与完美主义卡点',
+        radarLabel: '决策与完美',
+        desc: '反映你在做选择和启动任务时的犹豫与苛求程度。',
+        color: '#6D8F79', // 鼠尾草绿
+        bgClass: 'bg-sage-500',
+        lightBgClass: 'bg-sage-50',
+        textClass: 'text-sage-600'
+      },
+      D4: {
+        id: 'D4',
+        shortName: '能量回血与断电信号',
+        fullName: '维度四：能量回血与断电信号',
+        radarLabel: '回血与断电',
+        desc: '反映你日常“掉电”后能否顺利恢复电量。',
+        color: '#4A4845', // 深炭灰
+        bgClass: 'bg-charcoal-700',
+        lightBgClass: 'bg-cream-100',
+        textClass: 'text-charcoal-700'
+      }
+    };
+
+    const QUESTIONS = [
+      // 维度一：反刍与脑内预演（D1 · 第 1～5 题）
+      { id: 1, dim: 'D1', text: '结束一段聊天或会议后，脑子里还会反复回放刚才的话，琢磨“我是不是说错了”。' },
+      { id: 2, dim: 'D1', text: '还没发生的事，我已经提前在脑子里把各种可能的结果、对话甚至最坏情况演练了一遍。' },
+      { id: 3, dim: 'D1', text: '晚上躺下准备休息时，大脑却像开了多个窗口一样停不下来，越想越清醒。' },
+      { id: 4, dim: 'D1', text: '别人一句很随口的话，我会忍不住在心里拆解好几遍，猜测背后的深层意思。' },
+      { id: 5, dim: 'D1', text: '当一件小事没按预期发展时，我容易反复复盘“如果当初那样做就好了”。' },
+
+      // 维度二：边界与讨好承压（D2 · 第 6～10 题）
+      { id: 6, dim: 'D2', text: '明明已经很累、没空或不想去，但面对别人的请求时，嘴上还是很容易答应下来。' },
+      { id: 7, dim: 'D2', text: '看到身边的人情绪低落或气氛有点僵，我会本能地觉得是不是自己做得不够好，想赶紧缓和。' },
+      { id: 8, dim: 'D2', text: '即使心里感到委屈或被冒犯，我也倾向于先忍着、消化掉，不愿意直接表达不满。' },
+      { id: 9, dim: 'D2', text: '在群聊或多人相处时，我经常会顾虑别人的感受，担心自己的发言太突兀或冷场。' },
+      { id: 10, dim: 'D2', text: '真正需要被照顾或被理解的时候，我习惯说“没事，我挺好的”，不愿给别人添麻烦。' },
+
+      // 维度三：决策与完美主义卡点（D3 · 第 11～15 题）
+      { id: 11, dim: 'D3', text: '哪怕是点外卖、挑一件日用品或选个头像这种小事，我也容易纠结半天，怕选错后悔。' },
+      { id: 12, dim: 'D3', text: '面对一项任务时，总想等“状态更好、思路更清晰、时间更充裕”再开始，结果一拖再拖。' },
+      { id: 13, dim: 'D3', text: '事情只要有一点小瑕疵，我就容易产生“这次做得不够好”的挫败感，甚至想推倒重来。' },
+      { id: 14, dim: 'D3', text: '做重要决定前，我会反复查资料、问多人意见，却依然拿不定主意，陷入焦虑。' },
+      { id: 15, dim: 'D3', text: '忙完一天看似一直在处理琐事，但真正推进的核心事情却很少，心里反而更慌。' },
+
+      // 维度四：能量回血与断电信号（D4 · 第 16～20 题）
+      { id: 16, dim: 'D4', text: '收到微信或消息提示时，明明看到了，却不想立刻点开或回复，想等“有能量再说”。' },
+      { id: 17, dim: 'D4', text: '参加完聚会或高强度社交后，我需要留出很长一段完全安静、不被打扰的时间才能缓过来。' },
+      { id: 18, dim: 'D4', text: '白天明明已经很累，到了晚上却舍不得睡，靠刷手机、看视频“强行抢回一点自己的时间”。' },
+      { id: 19, dim: 'D4', text: '假期或休息日结束后，我不仅没有觉得充好电，反而觉得更疲惫或提不起劲。' },
+      { id: 20, dim: 'D4', text: '面对日常琐事时，我常觉得“连打字、做决定、出门”都在消耗原本就不多的电量。' }
+    ];
+
+    const OPTIONS = [
+      { key: 'A', label: '几乎没有', score: 1 },
+      { key: 'B', label: '偶尔这样', score: 2 },
+      { key: 'C', label: '经常这样', score: 3 },
+      { key: 'D', label: '几乎总是', score: 4 }
+    ];
+
+    /**
+     * ==========================================
+     * 2. 四种主内耗类型深度报告文案配置
+     * ==========================================
+     */
+    const TYPE_PROFILES = {
+      D1: {
+        title: '脑内预演型内耗者',
+        code: '剧场导演',
+        persona: '你的能量很大一部分不是被“事情本身”用掉的，而是在事情还没发生、或者已经结束之后，被大脑反复推演和回放消耗掉了。你对细节和分寸有较高的觉察，但在需要抽离和休息时，大脑很难立刻按下暂停键。',
+        triggers: [
+          {
+            title: '重要沟通或结果未定前',
+            desc: '面对汇报、邀约、表态或未知变化时，你会本能地把各种可能性想一遍，试图用“提前想全”换取安全感，但预演越细，心里的紧绷感越强。'
+          },
+          {
+            title: '独处或睡前安静下来时',
+            desc: '白天忙着应付外界时还没觉察，一安静下来，白天的对话片段和未完成事项就会自动跳出来循环播放。'
+          }
+        ],
+        blindspots: [
+          {
+            title: '把“提前想很多”误当成“做好了准备”',
+            desc: '适度规划有帮助，但反复推演同一件事却没有新信息或实际行动时，它更像是消耗精力的空转。'
+          },
+          {
+            title: '把“认知过载导致的疲惫”归因为“自己不够努力”',
+            desc: '当你因为脑子转太快而犯困、走神或拖延，往往不是态度问题，而是注意力资源已经接近上限。'
+          }
+        ],
+        suggestions: [
+          {
+            title: '设一个“停笔线”',
+            desc: '当同一件事在脑子里反复想超过 3 遍且没有新信息时，写下“我现在能做的最小一步是什么”，写完就合上，不再继续推演。'
+          },
+          {
+            title: '区分“可控制”与“不可控制”',
+            desc: '遇到担心时，在心里快速划分界限——自己能改的立刻做一点，别人怎么想、未来怎么变暂时放一放，只抓手里能握住的部分。'
+          },
+          {
+            title: '睡前 15 分钟“卸载大脑”',
+            desc: '睡觉前减少高刺激内容，花几分钟把明天要做的 1～2 件事写下来，告诉大脑“已经记好了，今晚不用再排练了”。'
+          }
+        ]
+      },
+
+      D2: {
+        title: '高敏感边界承压者',
+        code: '情绪缓冲垫',
+        persona: '你的能量很大一部分消耗在“承接他人情绪”与“维护关系和谐”上。你拥有极强的共情力与人际敏锐度，总能第一时间察觉环境中的微妙变化，但也因此习惯把别人的课题揽到自己身上，用委屈自己换取表面的风平浪静。',
+        triggers: [
+          {
+            title: '面对他人请求或突发邀约时',
+            desc: '哪怕自己已经精疲力竭，只要看到对方期待的眼神或不好意思拒绝的氛围，嘴上就会先答应下来，事后才开始独自懊悔和烦躁。'
+          },
+          {
+            title: '群体气氛略显尴尬或有人情绪低落时',
+            desc: '你会下意识启动“救场模式”，不断找话题、递台阶或自我反思是不是哪里没顾及到，一场聚会下来比上一天班还累。'
+          }
+        ],
+        blindspots: [
+          {
+            title: '把“拒绝别人”等同于“伤害关系”',
+            desc: '健康的边界反而能让关系更长久，真正稳固的关系并不会因为你的一次坦诚拒绝而崩塌。'
+          },
+          {
+            title: '习惯性压抑真实需求却期待对方懂',
+            desc: '总说“我没事”“都可以”，不仅让自己积攒隐性怨气，也让身边人失去了真正了解和照顾你的机会。'
+          }
+        ],
+        suggestions: [
+          {
+            title: '练习“延迟 10 分钟答应”',
+            desc: '收到任何非紧急请求时，先回复“我看一下日程/晚点回复你”，给自己留出脱离现场压力、问问自己“我真想做吗”的缓冲期。'
+          },
+          {
+            title: '每天练习一次“微表达”',
+            desc: '从低风险小事开始说出真实偏好，比如“今天我想吃清淡点的”“我这会儿有点累，想先安静待一会儿”。'
+          },
+          {
+            title: '建立“情绪课题分离”暗号',
+            desc: '察觉他人低落时，在心里默念“这是他的情绪，我可以关心，但不必由我负责解决”。'
+          }
+        ]
+      },
+
+      D3: {
+        title: '高标准卡顿型内耗者',
+        code: '完美起跑线',
+        persona: '你的能量往往在“真正开始行动之前”就已经耗尽了。你对品质和结果有着很高的自我要求，害怕出错、害怕遗憾、害怕不够完美，结果在反复权衡与准备中把行动门槛抬得过高，陷入“越想做好越难启动，越拖延越焦虑”的循环。',
+        triggers: [
+          {
+            title: '面对重要任务或需要做抉择时',
+            desc: '总想收集齐所有信息、等状态最佳、规划出万无一失的方案再动手，结果在“准备阶段”耗光了所有热情与时间。'
+          },
+          {
+            title: '执行过程中出现小偏差时',
+            desc: '一旦事情没有按理想剧本推进，就容易产生强烈的挫败感，陷入全盘否定或反复返工，导致核心进度停滞不前。'
+          }
+        ],
+        blindspots: [
+          {
+            title: '把“完美主义”当成“高标准自律”',
+            desc: '真正的自律是持续推进并迭代，而完美主义本质上是对“失败与评判”的恐惧，它在用高标准阻止你开始。'
+          },
+          {
+            title: '高估“最优解”的价值，低估“完成”的力量',
+            desc: '80% 的日常选择和任务并不存在唯一标准答案，先做出一个 60 分的粗糙版本，远比停留在脑海里的 100 分更有生命力。'
+          }
+        ],
+        suggestions: [
+          {
+            title: '启动“5 分钟垃圾草稿法”',
+            desc: '允许自己先写一版很烂的初稿、先做最简单的 5 分钟动作，告诉自己“只是试运行，不算正式交卷”。'
+          },
+          {
+            title: '给小事设置“2 分钟决策上限”',
+            desc: '点外卖、买日用品等低后果决策，强迫自己在 2 分钟内选定并下单，把珍贵的意志力留给真正重要的事。'
+          },
+          {
+            title: '睡前记录“已完成清单（Done List）”',
+            desc: '不再只盯着没做完的待办清单自责，每天睡前写下 3 件今天已经推进的小事，重建掌控感。'
+          }
+        ]
+      },
+
+      D4: {
+        title: '报复性熬夜断电者',
+        code: '电量透支机',
+        persona: '你正处于“长期低电量运行”的透支边缘。白天你在不断回应外界需求、处理琐碎事务，精力被一点点抽干；到了夜晚或休息日，你渴望通过娱乐和独处夺回掌控感，却选择了高刺激、低恢复的伪休息方式，导致越歇越累、电量始终充不满。',
+        triggers: [
+          {
+            title: '深夜明知困倦却舍不得放下手机',
+            desc: '觉得白天的时间都不属于自己，只有深夜刷视频、看剧的这几个小时才真正自由，结果牺牲睡眠换来第二天的更严重掉电。'
+          },
+          {
+            title: '社交或高强度工作后的“消息失联期”',
+            desc: '看到微信红点就感到一阵莫名的抗拒和烦躁，连回复一句“好的”都觉得需要调动全身力气。'
+          }
+        ],
+        blindspots: [
+          {
+            title: '把“娱乐消遣”误当成“深度休息”',
+            desc: '刷短视频、打游戏虽然放松了神经，但大脑仍在持续接收海量信息流，并没有获得真正的认知静默与能量修复。'
+          },
+          {
+            title: '忽视日常微小的“隐性漏电”',
+            desc: '频繁切换任务、未关闭的群消息提醒、随时待命的心理状态，都在后台默默耗光你的基础电量。'
+          }
+        ],
+        suggestions: [
+          {
+            title: '安排每天 20 分钟“纯物理断网时间”',
+            desc: '不看手机、不听播客，只是散步、发呆、泡个热水澡或闭目养神，让大脑彻底退出信息接收状态。'
+          },
+          {
+            title: '设定“社交免打扰时段”',
+            desc: '固定每天晚上某段时间开启消息免打扰，允许自己心安理得地延迟回复非紧急消息，不再为此内疚。'
+          },
+          {
+            title: '把“报复性熬夜”提前 30 分钟变成“主动独处仪式”',
+            desc: '早半小时洗漱上床，点盏小夜灯看几页纸质书或听轻音乐，用高质量的掌控感替代熬夜补偿。'
+          }
+        ]
+      }
+    };
+
+    /**
+     * ==========================================
+     * 3. 应用状态管理
+     * ==========================================
+     */
+    let currentIndex = 0; // 当前题目索引 0 ~ 19
+    let answers = new Array(QUESTIONS.length).fill(null); // 存储每题得分 1~4
+    let isTransitioning = false; // 防止快速连点触发多次跳转
+    let latestReportPlainText = ''; // 存储最新生成的纯文本报告供复制
+
+    // DOM 引用
+    const viewIntro = document.getElementById('view-intro');
+    const viewQuiz = document.getElementById('view-quiz');
+    const viewAnalyzing = document.getElementById('view-analyzing');
+    const viewReport = document.getElementById('view-report');
+    const headerResetBtn = document.getElementById('headerResetBtn');
+
+    /**
+     * 切换主视图
+     */
+    function switchView(target) {
+      [viewIntro, viewQuiz, viewAnalyzing, viewReport].forEach(el => {
+        el.classList.add('hidden');
+      });
+
+      if (target === 'intro') {
+        viewIntro.classList.remove('hidden');
+        headerResetBtn.classList.add('hidden');
+      } else if (target === 'quiz') {
+        viewQuiz.classList.remove('hidden');
+        headerResetBtn.classList.remove('hidden');
+      } else if (target === 'analyzing') {
+        viewAnalyzing.classList.remove('hidden');
+        headerResetBtn.classList.add('hidden');
+      } else if (target === 'report') {
+        viewReport.classList.remove('hidden');
+        headerResetBtn.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    /**
+     * 开始测评
+     */
+    function startQuiz() {
+      currentIndex = 0;
+      answers = new Array(QUESTIONS.length).fill(null);
+      switchView('quiz');
+      renderQuestion(false);
+    }
+
+    /**
+     * 渲染当前题目与选项
+     */
+    function renderQuestion(animate = true) {
+      const q = QUESTIONS[currentIndex];
+      const dimMeta = DIMENSIONS_META[q.dim];
+      const selectedScore = answers[currentIndex];
+
+      // 更新顶部标签与进度条
+      const dimTagEl = document.getElementById('quizDimensionTag');
+      dimTagEl.textContent = dimMeta.fullName;
+      dimTagEl.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-cream-200/70 ${dimMeta.lightBgClass} ${dimMeta.textClass}`;
+
+      document.getElementById('quizCurrentNum').textContent = currentIndex + 1;
+      const progressPercent = ((currentIndex + 1) / QUESTIONS.length) * 100;
+      document.getElementById('quizProgressBar').style.width = `${progressPercent}%`;
+
+      // 触发卡片动画
+      const cardEl = document.getElementById('questionCard');
+      if (animate) {
+        cardEl.classList.remove('animate-question');
+        void cardEl.offsetWidth; // 强制重绘
+        cardEl.classList.add('animate-question');
+      }
+
+      // 更新题干
+      document.getElementById('questionText').textContent = `${q.id}. ${q.text}`;
+
+      // 渲染 4 个大面积选项卡片
+      const optionsContainer = document.getElementById('optionsContainer');
+      optionsContainer.innerHTML = '';
+
+      OPTIONS.forEach(opt => {
+        const isSelected = selectedScore === opt.score;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => handleSelectOption(opt.score);
+
+        // 选中态与默认态样式切换
+        const baseClasses = 'w-full text-left p-4 sm:p-4.5 rounded-2xl border transition-all duration-200 flex items-center justify-between group active:scale-[0.99]';
+        const stateClasses = isSelected
+          ? 'bg-mist-50 border-mist-500 shadow-sm ring-1 ring-mist-500/30'
+          : 'bg-cream-50/60 hover:bg-cream-100/80 border-cream-200/90 hover:border-charcoal-300';
+
+        btn.className = `${baseClasses} ${stateClasses}`;
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3.5">
+            <span class="w-8 h-8 rounded-xl font-num text-sm font-semibold flex items-center justify-center transition-colors ${
+              isSelected
+                ? 'bg-mist-500 text-white'
+                : 'bg-white text-charcoal-700 border border-cream-200 group-hover:border-charcoal-300'
+            }">
+              ${opt.key}
+            </span>
+            <span class="text-sm sm:text-base font-medium ${isSelected ? 'text-charcoal-900' : 'text-charcoal-700'}">
+              ${opt.label}
+            </span>
+          </div>
+          <span class="text-xs font-num px-2.5 py-1 rounded-lg ${
+            isSelected
+              ? 'bg-mist-100 text-mist-600 font-semibold'
+              : 'text-charcoal-300 group-hover:text-charcoal-500'
+          }">
+            ${opt.score} 分
+          </span>
+        `;
+
+        optionsContainer.appendChild(btn);
+      });
+
+      // 更新底部上一题 / 提交按钮状态
+      const prevBtn = document.getElementById('prevBtn');
+      prevBtn.disabled = currentIndex === 0;
+
+      const submitReportBtn = document.getElementById('submitReportBtn');
+      const autoHintText = document.getElementById('autoHintText');
+
+      if (currentIndex === QUESTIONS.length - 1 && selectedScore !== null) {
+        submitReportBtn.classList.remove('hidden');
+        autoHintText.classList.add('hidden');
+      } else {
+        submitReportBtn.classList.add('hidden');
+        autoHintText.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * 处理用户点击选项：高亮选中并平滑自动跳转下一题
+     */
+    function handleSelectOption(score) {
+      if (isTransitioning) return;
+      answers[currentIndex] = score;
+      renderQuestion(false); // 立即高亮当前选中态
+
+      isTransitioning = true;
+      setTimeout(() => {
+        isTransitioning = false;
+        if (currentIndex < QUESTIONS.length - 1) {
+          currentIndex++;
+          renderQuestion(true);
+        } else {
+          // 最后一题作答完毕，自动进入分析过渡与诊断报告
+          finishQuiz();
+        }
+      }, 280);
+    }
+
+    /**
+     * 返回上一题
+     */
+    function prevQuestion() {
+      if (currentIndex > 0 && !isTransitioning) {
+        currentIndex--;
+        renderQuestion(true);
+      }
+    }
+
+    /**
+     * 完成测评并计算结果
+     */
+    function finishQuiz() {
+      // 检查是否全部完成
+      const firstUnanswered = answers.findIndex(v => v === null);
+      if (firstUnanswered !== -1) {
+        currentIndex = firstUnanswered;
+        renderQuestion(true);
+        showToast(`请先完成第 ${firstUnanswered + 1} 题`);
+        return;
+      }
+
+      switchView('analyzing');
+
+      // 模拟 1.1 秒疗愈计算动画后展示报告
+      setTimeout(() => {
+        const result = calculateResult();
+        renderReport(result);
+        switchView('report');
+      }, 1100);
+    }
+
+    /**
+     * ==========================================
+     * 4. 核心计分与定型逻辑（严格还原需求规格）
+     * ==========================================
+     */
+    function calculateResult() {
+      const dimScores = { D1: 0, D2: 0, D3: 0, D4: 0 };
+
+      QUESTIONS.forEach((q, idx) => {
+        dimScores[q.dim] += answers[idx];
+      });
+
+      const totalScore = dimScores.D1 + dimScores.D2 + dimScores.D3 + dimScores.D4;
+
+      // 1. 整体状态等级判定（20~34轻度 / 35~54中度 / 55~80高强度）
+      let levelInfo = {};
+      if (totalScore <= 34) {
+        levelInfo = {
+          name: '轻度内耗',
+          subtitle: '低电量波动期',
+          desc: '偶发消耗，整体节奏较可控。日常保持适度觉察与规律休息即可维持良好状态。',
+          badgeClass: 'bg-sage-100 text-sage-600'
+        };
+      } else if (totalScore <= 54) {
+        levelInfo = {
+          name: '中度内耗',
+          subtitle: '偷偷掉电期',
+          desc: '多个日常信号叠加，精力被持续分散。建议针对最大漏电维度做轻量调整。',
+          badgeClass: 'bg-apricot-100 text-apricot-600'
+        };
+      } else {
+        levelInfo = {
+          name: '高强度内耗',
+          subtitle: '深度耗电期',
+          desc: '大脑与情绪长期处于高负荷运转，急需减负与回血。请优先照顾自己的精力边界。',
+          badgeClass: 'bg-mist-100 text-mist-600'
+        };
+      }
+
+      // 2. 主内耗类型判定：最高分维度；若并列，严格按 D1 > D4 > D3 > D2 优先级排序
+      const priorityOrder = ['D1', 'D4', 'D3', 'D2'];
+      const maxScore = Math.max(dimScores.D1, dimScores.D2, dimScores.D3, dimScores.D4);
+
+      // 按优先级找出所有达到最高分的维度
+      const topDims = priorityOrder.filter(d => dimScores[d] === maxScore);
+      const primaryDim = topDims[0]; // 优先级最高的主维度
+      const tiedDims = topDims.slice(1); // 其余并列最高分维度
+
+      // 3. 单维消耗等级判定辅助函数（5~9稳健 / 10~14中度 / 15~20高度）
+      const getDimLevel = (score) => {
+        if (score <= 9) {
+          return { label: '较轻 / 稳健', tagClass: 'bg-sage-50 text-sage-600 border-sage-100' };
+        } else if (score <= 14) {
+          return { label: '中度消耗', tagClass: 'bg-apricot-50 text-apricot-600 border-apricot-100' };
+        } else {
+          return { label: '高度消耗 · 核心漏电口', tagClass: 'bg-mist-100 text-mist-600 border-mist-200' };
+        }
+      };
+
+      return {
+        dimScores,
+        totalScore,
+        levelInfo,
+        primaryDim,
+        tiedDims,
+        maxScore,
+        getDimLevel
+      };
+    }
+
+    /**
+     * ==========================================
+     * 5. 渲染完整诊断报告与 SVG 雷达图
+     * ==========================================
+     */
+    function renderReport(result) {
+      const { dimScores, totalScore, levelInfo, primaryDim, tiedDims, maxScore, getDimLevel } = result;
+      const profile = TYPE_PROFILES[primaryDim];
+      const primaryMeta = DIMENSIONS_META[primaryDim];
+
+      // 1. 头部核心结果卡片
+      document.getElementById('reportCodeBadge').textContent = `代号：${profile.code}`;
+      document.getElementById('reportTypeName').textContent = `《${profile.title}》`;
+
+      // 若存在并列最高分，展示“双核叠加 · 含[并列维度类型名]”
+      const dualBadgeEl = document.getElementById('reportDualBadge');
+      if (tiedDims.length > 0) {
+        const tiedNames = tiedDims.map(d => TYPE_PROFILES[d].title).join(' / ');
+        dualBadgeEl.textContent = `双核叠加 · 含${tiedNames}`;
+        dualBadgeEl.classList.remove('hidden');
+      } else {
+        dualBadgeEl.classList.add('hidden');
+      }
+
+      document.getElementById('reportTotalScore').textContent = totalScore;
+      const levelTagEl = document.getElementById('reportLevelTag');
+      levelTagEl.textContent = `${levelInfo.name} · ${levelInfo.subtitle}`;
+      levelTagEl.className = `inline-block mt-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium ${levelInfo.badgeClass}`;
+
+      document.getElementById('reportMaxDimName').textContent = `${primaryMeta.shortName}（${primaryDim}）`;
+      document.getElementById('reportMaxDimScore').textContent = `${maxScore} / 20 分`;
+      document.getElementById('reportLevelDesc').textContent = levelInfo.desc;
+
+      // 2. 一、核心画像定调
+      document.getElementById('reportCorePersona').textContent = profile.persona;
+
+      // 3. 二、绘制 SVG 雷达图 + 4 维进度条
+      renderRadarChart(dimScores);
+
+      const barsContainer = document.getElementById('dimensionBarsContainer');
+      barsContainer.innerHTML = '';
+
+      ['D1', 'D2', 'D3', 'D4'].forEach(dimKey => {
+        const meta = DIMENSIONS_META[dimKey];
+        const score = dimScores[dimKey];
+        const dLevel = getDimLevel(score);
+        const percent = (score / 20) * 100;
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'space-y-1.5';
+        itemEl.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-num font-bold px-2 py-0.5 rounded-md ${meta.lightBgClass} ${meta.textClass}">${dimKey}</span>
+              <span class="text-sm font-semibold text-charcoal-900">${meta.shortName}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded-full border ${dLevel.tagClass} font-medium">${dLevel.label}</span>
+              <span class="text-sm font-num font-bold text-charcoal-900">${score} <span class="text-xs font-normal text-charcoal-500">/ 20 分</span></span>
+            </div>
+          </div>
+          <div class="w-full h-2.5 bg-cream-100 rounded-full overflow-hidden">
+            <div class="h-full ${meta.bgClass} rounded-full transition-all duration-700" style="width: ${percent}%"></div>
+          </div>
+          <p class="text-xs text-charcoal-500 leading-relaxed">${meta.desc}</p>
+        `;
+        barsContainer.appendChild(itemEl);
+      });
+
+      // 4. 三、2 个高频触发场景
+      const triggersContainer = document.getElementById('reportTriggersContainer');
+      triggersContainer.innerHTML = '';
+      profile.triggers.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-2xl bg-apricot-50/60 border border-apricot-100/80';
+        div.innerHTML = `
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-apricot-500 text-white font-num text-xs font-semibold flex items-center justify-center shrink-0">${index + 1}</span>
+            <h4 class="text-sm font-semibold text-charcoal-900">${item.title}</h4>
+          </div>
+          <p class="text-xs sm:text-sm text-charcoal-700 leading-relaxed pl-7">${item.desc}</p>
+        `;
+        triggersContainer.appendChild(div);
+      });
+
+      // 5. 四、2 个容易忽略的隐形盲点
+      const blindspotsContainer = document.getElementById('reportBlindspotsContainer');
+      blindspotsContainer.innerHTML = '';
+      profile.blindspots.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-2xl bg-cream-50 border border-cream-200/80';
+        div.innerHTML = `
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-charcoal-700 text-white font-num text-xs font-semibold flex items-center justify-center shrink-0">${index + 1}</span>
+            <h4 class="text-sm font-semibold text-charcoal-900">${item.title}</h4>
+          </div>
+          <p class="text-xs sm:text-sm text-charcoal-700 leading-relaxed pl-7">${item.desc}</p>
+        `;
+        blindspotsContainer.appendChild(div);
+      });
+
+      // 6. 五、3 条低成本止损与回血建议
+      const suggestionsContainer = document.getElementById('reportSuggestionsContainer');
+      suggestionsContainer.innerHTML = '';
+      profile.suggestions.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-2xl bg-white/90 border border-sage-100 shadow-xs';
+        div.innerHTML = `
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-sage-500 text-white font-num text-xs font-semibold flex items-center justify-center shrink-0">${index + 1}</span>
+            <h4 class="text-sm font-semibold text-charcoal-900">${item.title}</h4>
+          </div>
+          <p class="text-xs sm:text-sm text-charcoal-700 leading-relaxed pl-7">${item.desc}</p>
+        `;
+        suggestionsContainer.appendChild(div);
+      });
+
+      // 生成供一键复制的纯文本完整报告
+      latestReportPlainText = buildPlainTextReport(result, profile);
+    }
+
+    /**
+     * 绘制精致 4 维 SVG 雷达图
+     */
+    function renderRadarChart(scores) {
+      const svg = document.getElementById('radarSvg');
+      const cx = 180;
+      const cy = 140;
+      const maxR = 88;
+      const levels = [5, 10, 15, 20]; // 四圈刻度
+
+      // 四个轴的角度：上(D1), 右(D2), 下(D3), 左(D4)
+      const axes = [
+        { key: 'D1', angle: -Math.PI / 2, label: 'D1 反刍与预演', dx: 0, dy: -14, anchor: 'middle' },
+        { key: 'D2', angle: 0, label: 'D2 边界与讨好', dx: 14, dy: 4, anchor: 'start' },
+        { key: 'D3', angle: Math.PI / 2, label: 'D3 决策与完美', dx: 0, dy: 20, anchor: 'middle' },
+        { key: 'D4', angle: Math.PI, label: 'D4 回血与断电', dx: -14, dy: 4, anchor: 'end' }
+      ];
+
+      let svgContent = `
+        <defs>
+          <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#8E7DB3" stop-opacity="0.38" />
+            <stop offset="100%" stop-color="#6D8F79" stop-opacity="0.18" />
+          </radialGradient>
+        </defs>
+      `;
+
+      // 绘制同心菱形网格线
+      levels.forEach(lvl => {
+        const r = (lvl / 20) * maxR;
+        const pts = axes.map(ax => {
+          const x = cx + r * Math.cos(ax.angle);
+          const y = cy + r * Math.sin(ax.angle);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+        svgContent += `<polygon points="${pts}" fill="none" stroke="#E8E2D7" stroke-width="1" stroke-dasharray="${lvl === 20 ? 'none' : '3,3'}" />`;
+      });
+
+      // 绘制坐标轴线
+      axes.forEach(ax => {
+        const x2 = cx + maxR * Math.cos(ax.angle);
+        const y2 = cy + maxR * Math.sin(ax.angle);
+        svgContent += `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#E8E2D7" stroke-width="1" />`;
+      });
+
+      // 计算数据多边形顶点
+      const dataPoints = axes.map(ax => {
+        const val = scores[ax.key];
+        const r = (val / 20) * maxR;
+        return {
+          x: cx + r * Math.cos(ax.angle),
+          y: cy + r * Math.sin(ax.angle),
+          val
+        };
+      });
+
+      const polyStr = dataPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+      // 绘制数据区域与描边
+      svgContent += `<polygon points="${polyStr}" fill="url(#radarFill)" stroke="#8E7DB3" stroke-width="2.2" stroke-linejoin="round" />`;
+
+      // 绘制顶点圆点与维度文字标签
+      axes.forEach((ax, idx) => {
+        const pt = dataPoints[idx];
+        const lx = cx + maxR * Math.cos(ax.angle) + ax.dx;
+        const ly = cy + maxR * Math.sin(ax.angle) + ax.dy;
+
+        svgContent += `
+          <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4.5" fill="#FFFFFF" stroke="#8E7DB3" stroke-width="2.5" />
+          <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${ax.anchor}" fill="#4A4845" font-size="11.5" font-weight="600">
+            ${ax.label} (${pt.val})
+          </text>
+        `;
+      });
+
+      svg.innerHTML = svgContent;
+    }
+
+    /**
+     * 构建完整格式化报告文本（用于一键复制）
+     */
+    function buildPlainTextReport(result, profile) {
+      const { dimScores, totalScore, levelInfo, primaryDim, tiedDims, maxScore } = result;
+      const primaryMeta = DIMENSIONS_META[primaryDim];
+      const dualNote = tiedDims.length > 0
+        ? `（双核叠加 · 含${tiedDims.map(d => TYPE_PROFILES[d].title).join(' / ')}）`
+        : '';
+
+      return [
+        `【情绪内耗完整测试报告】`,
+        `主内耗类型：${profile.title}（代号：${profile.code}）${dualNote}`,
+        `内耗综合得分：${totalScore} / 80 分（${levelInfo.name} · ${levelInfo.subtitle}）`,
+        `最大漏电维度：${primaryMeta.shortName}（${primaryDim}）（${maxScore} / 20 分）`,
+        ``,
+        `一、核心画像定调`,
+        `${profile.persona}`,
+        ``,
+        `二、4 维能量消耗图谱`,
+        `• 反刍与脑内预演（D1）：${dimScores.D1} / 20 分`,
+        `• 边界与讨好承压（D2）：${dimScores.D2} / 20 分`,
+        `• 决策与完美主义卡点（D3）：${dimScores.D3} / 20 分`,
+        `• 能量回血与断电信号（D4）：${dimScores.D4} / 20 分`,
+        ``,
+        `三、2 个高频触发场景`,
+        `1. ${profile.triggers[0].title}：${profile.triggers[0].desc}`,
+        `2. ${profile.triggers[1].title}：${profile.triggers[1].desc}`,
+        ``,
+        `四、2 个容易忽略的隐形盲点`,
+        `1. ${profile.blindspots[0].title}：${profile.blindspots[0].desc}`,
+        `2. ${profile.blindspots[1].title}：${profile.blindspots[1].desc}`,
+        ``,
+        `五、3 条低成本止损与回血建议`,
+        `1. ${profile.suggestions[0].title}：${profile.suggestions[0].desc}`,
+        `2. ${profile.suggestions[1].title}：${profile.suggestions[1].desc}`,
+        `3. ${profile.suggestions[2].title}：${profile.suggestions[2].desc}`
+      ].join('\n');
+    }
+
+    /**
+     * 一键复制报告文本（兼容 iFrame 环境，使用 textarea + execCommand('copy')）
+     */
+    function copyReportText() {
+      if (!latestReportPlainText) return;
+
+      const textArea = document.createElement('textarea');
+      textArea.value = latestReportPlainText;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      textArea.style.top = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast('已成功复制完整诊断报告文本');
+        } else {
+          showToast('复制未成功，请长按报告内容手动复制');
+        }
+      } catch (err) {
+        showToast('复制失败，请手动选择文本复制');
+      }
+
+      document.body.removeChild(textArea);
+    }
+
+    /**
+     * 轻提示 Toast
+     */
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      document.getElementById('toastText').textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2400);
+    }
+
+    /**
+     * 弹窗与重测控制
+     */
+    function confirmReset() {
+      document.getElementById('resetModal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModal').classList.add('hidden');
+    }
+
+    function resetAll(toIntro = true) {
+      closeResetModal();
+      currentIndex = 0;
+      answers = new Array(QUESTIONS.length).fill(null);
+      if (toIntro) {
+        switchView('intro');
+      } else {
+        switchView('quiz');
+        renderQuestion(true);
+      }
+    }
+  </script>
+</body>
+</html>
