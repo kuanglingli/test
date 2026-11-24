@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>你现在的心动，是“看见真实的人”，还是“滤镜与投射”？</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF7F4',
+            creamCard: '#FFFDFB',
+            mistPink: '#E899A8',
+            coralPink: '#D97B8D',
+            pinkSoft: '#FBEFF2',
+            pinkBorder: '#F2D5DC',
+            apricotSoft: '#FDF3EC',
+            apricotAccent: '#D98E66',
+            sageSoft: '#EEF5F2',
+            sageAccent: '#638C7E',
+            lilacSoft: '#F3EFF8',
+            lilacAccent: '#8673A1',
+            ink: '#3A3234',
+            inkMuted: '#786B6E',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans SC"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          boxShadow: {
+            soft: '0 12px 32px -12px rgba(92, 62, 70, 0.09)',
+            card: '0 4px 18px -4px rgba(92, 62, 70, 0.06)',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      background-color: #FAF7F4;
+      color: #3A3234;
+      font-family: 'Noto Sans SC', 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .fade-in {
+      animation: fadeInUp 0.28s ease-out both;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .bar-fill {
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  </style>
+</head>
+<body class="bg-cream text-ink antialiased min-h-screen flex flex-col items-center justify-start sm:py-6 px-0 sm:px-4">
+  <!-- 小程序居中主容器 -->
+  <div id="app" class="w-full max-w-[460px] min-h-screen sm:min-h-[820px] bg-creamCard sm:rounded-[32px] sm:border sm:border-[#EFE5E7] sm:shadow-soft flex flex-col overflow-hidden relative">
+    <!-- 顶部小程序导航栏 -->
+    <header class="sticky top-0 z-20 bg-creamCard/95 backdrop-blur border-b border-[#F2E9EB] px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-pinkSoft text-coralPink text-xs font-semibold shrink-0 border border-pinkBorder">
+          心动
+        </span>
+        <div class="truncate">
+          <h1 class="text-sm font-semibold text-ink truncate">真实看见 vs 滤镜投射 · 心动测评</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button
+          type="button"
+          onclick="navigateTo('intro')"
+          class="text-xs px-3 py-1.5 rounded-full bg-[#F5EEEF] text-inkMuted hover:bg-mistPink hover:text-white transition font-medium"
+        >
+          首页
+        </button>
+      </div>
+    </header>
+
+    <!-- 轻量提示条（替代 alert） -->
+    <div
+      id="toastBanner"
+      role="status"
+      aria-live="polite"
+      class="hidden mx-4 mt-3 px-3.5 py-2.5 rounded-2xl bg-pinkSoft border border-pinkBorder text-ink text-xs leading-relaxed flex items-center justify-between gap-2 fade-in"
+    >
+      <span id="toastText"></span>
+      <button type="button" onclick="hideToast()" class="text-coralPink font-semibold px-1.5 py-0.5 rounded-lg hover:bg-white/70 shrink-0">
+        知道了
+      </button>
+    </div>
+
+    <!-- 主内容区域 -->
+    <main id="mainContent" class="flex-1 px-4 py-5 space-y-5"></main>
+
+    <!-- 底部温和说明栏 -->
+    <footer class="px-5 py-3.5 bg-[#F8F3F2] border-t border-[#EFE5E7] text-[11px] text-inkMuted flex items-center justify-between gap-2">
+      <span>亲密关系心动觉察测评 · 仅供自我探索参考</span>
+      <button type="button" onclick="resetAllData()" class="underline hover:text-ink transition shrink-0">
+        重置进度
+      </button>
+    </footer>
+  </div>
+
+  <!-- 隐藏的剪贴板辅助文本域 -->
+  <textarea id="clipboardHelper" class="sr-only" aria-hidden="true" tabindex="-1"></textarea>
+
+  <script>
+    /**
+     * 《你现在的心动，是“看见真实的人”，还是“滤镜与投射”？》互动小程序
+     * 包含：20 道心动测评题库、四维定型与状态细分规则、逐题/全卷双模式、本人专属完整报告及摘要复制功能
+     */
+
+    const INSTRUCTION_TEXT = '请根据你目前对这位心动对象近期的真实感受与互动体验，在每题下选择最贴近的一项：';
+
+    const OPTIONS = [
+      { key: 'A', label: 'A. 几乎没有（1 分）', score: 1 },
+      { key: 'B', label: 'B. 偶尔这样（2 分）', score: 2 },
+      { key: 'C', label: 'C. 经常这样（3 分）', score: 3 },
+      { key: 'D', label: 'D. 几乎总是（4 分）', score: 4 },
+    ];
+
+    const DIMENSIONS = {
+      M1: {
+        id: 'M1',
+        name: '理想化滤镜与脑补投射',
+        fullTitle: '维度一：理想化滤镜与脑补投射（M1 · 第 1～5 题）',
+        badgeClass: 'bg-pinkSoft text-coralPink border border-pinkBorder',
+        barClass: 'bg-coralPink',
+        shortDesc: '反映你在好感初期把个人期待与浪漫想象投射到对方身上的程度。',
+      },
+      M2: {
+        id: 'M2',
+        name: '情绪上头与自我寄托',
+        fullTitle: '维度二：情绪上头与自我寄托（M2 · 第 6～10 题）',
+        badgeClass: 'bg-apricotSoft text-apricotAccent border border-[#F3DEC9]',
+        barClass: 'bg-apricotAccent',
+        shortDesc: '反映心动带来的情绪波动幅度与把对方当作情感寄托的程度。',
+      },
+      M3: {
+        id: 'M3',
+        name: '现实落差与回避核对',
+        fullTitle: '维度三：现实落差与回避核对（M3 · 第 11～15 题）',
+        badgeClass: 'bg-lilacSoft text-lilacAccent border border-[#E2D9EE]',
+        barClass: 'bg-lilacAccent',
+        shortDesc: '反映了解不够充分却投入较深、回避现实核对或易因落差骤冷的程度。',
+      },
+      M4: {
+        id: 'M4',
+        name: '真实看见与清醒靠近',
+        fullTitle: '维度四：真实看见与清醒靠近（M4 · 第 16～20 题）',
+        badgeClass: 'bg-sageSoft text-sageAccent border border-[#D4E6DF]',
+        barClass: 'bg-sageAccent',
+        shortDesc: '反映接纳真实人设、保持自我节奏与理性靠近的稳健程度。',
+      },
+    };
+
+    const QUESTIONS = [
+      // M1 (1-5)
+      { id: 1, dim: 'M1', text: '我对 TA 的许多好感，其实建立在“我觉得 TA 应该很懂我 / 很温柔 / 很靠谱”的猜测上，而不是 TA 已经展现出的稳定表现。' },
+      { id: 2, dim: 'M1', text: '看到 TA 身上某一个打动我的闪光点（比如某句话、某个小动作或某个背景标签）时，我容易自动把 TA 整个人都想象得非常美好。' },
+      { id: 3, dim: 'M1', text: '很多时候，我喜欢的是“和 TA 在一起时想象出来的未来画面”，而不是我们当下真实的相处日常。' },
+      { id: 4, dim: 'M1', text: '当 TA 出现与我预期不符的小缺点或普通一面时，我容易下意识找理由替 TA 圆回来，甚至有点不愿承认。' },
+      { id: 5, dim: 'M1', text: '我会忍不住反复回看 TA 的朋友圈、动态或聊天记录，从中拼凑出自己想要看到的信号和深意。' },
+      // M2 (6-10)
+      { id: 6, dim: 'M2', text: 'TA 的一条消息、一点回应或一句夸奖，就能让我的心情瞬间从低落切换到亢奋，情绪起伏很大。' },
+      { id: 7, dim: 'M2', text: '某种程度上，我觉得 TA 像是一道光或一种解药，能帮我填补最近生活里的孤单、无聊或疲惫。' },
+      { id: 8, dim: 'M2', text: '遇到 TA 之后，我容易把大量注意力都放在 TA 身上，原本自己的作息、兴趣或手头正事反而被搁置了。' },
+      { id: 9, dim: 'M2', text: '即使目前互动还很少或并不明朗，我也已经提前经历了许多心动、期待甚至患得患失的阶段。' },
+      { id: 10, dim: 'M2', text: '我会担心如果自己不够优秀、不够亮眼或不够配合，就会失去 TA 的注意与好感。' },
+      // M3 (11-15)
+      { id: 11, dim: 'M3', text: '我其实对 TA 的真实生活习惯、处事方式或过往经历了解有限，却已经产生了很深的喜欢。' },
+      { id: 12, dim: 'M3', text: '当现实里的互动和我想象中不一样时，我第一反应不是去了解真实原因，而是觉得“是不是时机不对 / 我想太多了”。' },
+      { id: 13, dim: 'M3', text: '在和 TA 相处时，我有时会刻意展现自己最好、最顺从的一面，害怕暴露真实情绪或不同想法会破坏这份好感。' },
+      { id: 14, dim: 'M3', text: '我常觉得“只要再多一点靠近，TA 就会变成我心里期待的样子”，忽略了每个人都有自己的性格底色。' },
+      { id: 15, dim: 'M3', text: '一旦发现 TA 和我想象中有明显落差，我容易产生强烈的失落感，甚至迅速从“很上头”变成“很下头”。' },
+      // M4 (16-20)
+      { id: 16, dim: 'M4', text: '我能接受 TA 有优点也有局限、有擅长的地方也有不够成熟的一面，不会因为小瑕疵就全盘推翻好感。' },
+      { id: 17, dim: 'M4', text: '我对 TA 的喜欢，更多来自真实交流中的默契、价值观的贴近与相处时的舒服感，而不是单向脑补。' },
+      { id: 18, dim: 'M4', text: '在对 TA 心动的同时，我依然能保持自己的生活节奏与判断力，不会因为一时的上头就盲目梭哈。' },
+      { id: 19, dim: 'M4', text: '我愿意通过真实的聊天与日常相处去认识“现在的 TA”，而不是急着把 TA 塞进我预设的理想模板里。' },
+      { id: 20, dim: 'M4', text: '即使这段心动最后没能走到下一步，我也能平静地接纳结果，把这份经历看作一次真实的遇见。' },
+    ];
+
+    // 四套完整测试结果报告文案
+    const REPORT_TYPES = {
+      TYPE_1: {
+        key: 'TYPE_1',
+        typeName: '浪漫滤镜投射型',
+        tagDesc: '滤镜投射主导 · 想象与期待',
+        coreTone:
+          '你对这段心动有着很强的感知力和想象力，但你喜欢上的，有一部分是“你希望 TA 成为的样子”或“你们未来可能拥有的画面”，而不完全是 TA 现实中原本的样子。滤镜越厚，心动越容易显得耀眼，但也更容易在看清细节时感到失落。',
+        scenarios: [
+          {
+            title: '刚产生好感或互动还停留在表层时',
+            desc: '看到对方一个亮眼特质或一句投机的话，就容易在脑子里补全整个人设，甚至提前规划了很多相处画面。',
+          },
+          {
+            title: '听到与想象不符的细节或遇到冷淡时刻时',
+            desc: '心里会突然一咯噔，出现怀疑、解释或失落，觉得“怎么和我想的不一样”。',
+          },
+        ],
+        blindSpots: [
+          {
+            title: '把“对理想伴侣的向往”误当成“已经认识了眼前这个人”',
+            desc: '好感刚起时，我们很容易把未满足的情感需求投射在对方身上，把 TA 当成载体。',
+          },
+          {
+            title: '只看闪光点、忽略日常相处里的真实成本',
+            desc: '一个人闪光的地方很迷人，但长期能不能处得来，往往取决于日常小事、沟通习惯和边界感。',
+          },
+        ],
+        suggestions: [
+          {
+            title: '给心动加一个“现实核对清单”',
+            desc: '试着把“TA 真实做过的事”和“我脑补出来的印象”分开写下来，看看哪些是事实，哪些只是猜测。',
+          },
+          {
+            title: '放慢“提前脑补未来”的速度',
+            desc: '当下先只看眼前两三次真实互动，不急着把一次好感推演成整段感情的结局。',
+          },
+          {
+            title: '允许对方是“普通人”',
+            desc: '当发现 TA 也有不够完美或不够懂你的地方时，把它看作认识真实人的开始，而不是关系破灭的信号。',
+          },
+        ],
+      },
+      TYPE_2: {
+        key: 'TYPE_2',
+        typeName: '情绪上头寄托型',
+        tagDesc: '滤镜投射主导 · 波动与牵引',
+        coreTone:
+          '你的心动来得比较浓烈，也很容易把自己的心情和注意力交给对方的反馈。当对方靠近或回应积极时，你会觉得整个人都被点亮；可一旦对方慢下来或变得模糊，你的情绪也会跟着往下沉，容易陷入一种被牵着走的状态。',
+        scenarios: [
+          {
+            title: '收到对方消息、互动变多或氛围暧昧时',
+            desc: '容易瞬间上头，脑子里全是和 TA 相关的念头，甚至忘了原本要做的事。',
+          },
+          {
+            title: '等待回复、对方忙碌或互动变少时',
+            desc: '情绪容易从高点滑落，产生患得患失、自我怀疑或忍不住想确认的感觉。',
+          },
+        ],
+        blindSpots: [
+          {
+            title: '把“情绪被强烈牵动”误当成“天生注定的深爱”',
+            desc: '强烈的上头感有时源于新鲜感、空窗期或情绪寄托，并不等同于稳定且合适的亲密关系。',
+          },
+          {
+            title: '把“自己的开心”完全交到对方手里',
+            desc: '当快乐和安心都依赖对方的态度时，关系会变得很沉重，自己也会失去主动权。',
+          },
+        ],
+        suggestions: [
+          {
+            title: '在上头时给自己设“情绪缓冲停顿”',
+            desc: '心情特别兴奋或特别低落时，先不急着做决定、发长消息或下结论，等 1～2 小时情绪平复后再看。',
+          },
+          {
+            title: '保留“没有 TA 也照常运转”的日常',
+            desc: '每天留出固定时间做自己的事（运动、看书、朋友聚会、工作推进），稳住自己的生活重心。',
+          },
+          {
+            title: '观察对方的“稳定度”而非“瞬间热度”',
+            desc: '看一个人值不值得继续靠近，重点看 TA 在平淡日子里的靠谱与真诚，而不只是某一刻的热情。',
+          },
+        ],
+      },
+      TYPE_3: {
+        key: 'TYPE_3',
+        typeName: '心动摇摆观察型',
+        tagDesc: '滤镜与观察交织 · 半信半疑',
+        coreTone:
+          '你对这位心动对象既有好感与期待，又带着几分谨慎和犹豫。你并不是完全没有感觉，只是在靠近的过程中，一边会被某些瞬间打动，一边又隐约觉得还不够了解、不够确定，所以容易在“再近一点”和“先看看再说”之间摇摆。',
+        scenarios: [
+          {
+            title: '聊天氛围不错但缺乏更深入的现实了解时',
+            desc: '觉得挺投缘，但又隐隐觉得“好像只认识了 TA 的一面”，心里有点拿不准。',
+          },
+          {
+            title: '对方态度忽近忽远或推进节奏不明朗时',
+            desc: '容易陷入纠结，不知道自己是该主动一点，还是该退一步观察。',
+          },
+        ],
+        blindSpots: [
+          {
+            title: '在“没看清全貌”时强迫自己立刻得出结论',
+            desc: '好感初期没看清很正常，不必急着逼自己决定“到底爱不爱”或“能不能在一起”。',
+          },
+          {
+            title: '用“反复纠结”代替“自然了解”',
+            desc: '一直停留在脑内权衡里，往往不如在安全、舒适的范围内多一次真实的交流与观察。',
+          },
+        ],
+        suggestions: [
+          {
+            title: '允许自己处于“观察期”',
+            desc: '把现在定位为“认识与了解阶段”，给自己一点时间和空间去看清彼此的真实习惯与边界。',
+          },
+          {
+            title: '问自己 2 个具体的现实问题',
+            desc: '比起“TA 喜不喜欢我”，不妨问问自己：“和 TA 聊天时我舒不舒服？”“TA 的处事方式和我合不合得来？”',
+          },
+          {
+            title: '顺其自然，不过度消耗',
+            desc: '好感值得被认真对待，但也无需用过度猜想和紧绷去透支自己。',
+          },
+        ],
+      },
+      TYPE_4: {
+        key: 'TYPE_4',
+        typeName: '真实看见靠近型',
+        tagDesc: '真实看见主导 · 清醒与自然',
+        coreTone:
+          '你在面对这份心动时，展现出较高的清醒度与接纳度。你能够感受到喜欢与吸引，但并没有把对方神化或过度投射，而是更愿意在真实的相处与交流中去认识 TA 本身，同时守住自己的生活节奏与边界。',
+        scenarios: [
+          {
+            title: '与对方坦诚沟通、分享日常或面对小分歧时',
+            desc: '你更能听见对方的真实想法，也愿意表达自己的感受，而不是靠猜心或过度迎合去维持好感。',
+          },
+          {
+            title: '好感逐步沉淀、看清对方优点与短板时',
+            desc: '你能比较平和地接纳完整的人，思考彼此是否真的合拍，而不是盲目冲动。',
+          },
+        ],
+        blindSpots: [
+          {
+            title: '太清醒有时会显得“不够投入或有点克制”',
+            desc: '保持理智是好事，但如果在合适的人面前过度克制，可能会让对方觉得你不够热情或有点距离感。',
+          },
+          {
+            title: '容易低估别人身上“滤镜与上头”的一面',
+            desc: '自己看得清时，若对方正处于情绪上头或理想化阶段，多一点清晰沟通能避免误解。',
+          },
+        ],
+        suggestions: [
+          {
+            title: '在清醒中保留一点“真诚分享”',
+            desc: '看清现实不代表冷漠，适度表达自己的喜欢、好奇与真实感受，能让靠近更有温度。',
+          },
+          {
+            title: '通过真实场景检验契合度',
+            desc: '在日常沟通、作息节奏、面对小麻烦的态度中观察彼此是否舒服，这比空想更可靠。',
+          },
+          {
+            title: '按自己的节奏稳步前行',
+            desc: '不急不躁地了解与相处，让喜欢建立在“看见真实”的基础上，才会走得更踏实。',
+          },
+        ],
+      },
+    };
+
+    // 应用状态
+    const state = {
+      view: 'intro', // 'intro' | 'quiz' | 'report'
+      quizMode: 'single', // 'single' | 'all'
+      currentIndex: 0,
+      answers: {}, // { [questionId]: 1 | 2 | 3 | 4 }
+      toastTimer: null,
+    };
+
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      const textEl = document.getElementById('toastText');
+      if (!banner || !textEl) return;
+      textEl.textContent = message;
+      banner.classList.remove('hidden');
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => {
+        hideToast();
+      }, 3600);
+    }
+
+    function hideToast() {
+      const banner = document.getElementById('toastBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function navigateTo(targetView) {
+      if (targetView === 'report') {
+        const unanswered = getUnansweredIds();
+        if (unanswered.length > 0) {
+          showToast(`还有 ${unanswered.length} 题未作答（如第 ${unanswered[0]} 题），完成后即可生成我的心动报告`);
+          state.view = 'quiz';
+          if (state.quizMode === 'single') {
+            const idx = QUESTIONS.findIndex((q) => q.id === unanswered[0]);
+            if (idx >= 0) state.currentIndex = idx;
+          }
+          render();
+          scrollToQuestion(unanswered[0]);
+          return;
+        }
+      }
+      state.view = targetView;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startTest() {
+      state.view = 'quiz';
+      const unanswered = getUnansweredIds();
+      if (unanswered.length > 0 && unanswered.length < QUESTIONS.length) {
+        const idx = QUESTIONS.findIndex((q) => q.id === unanswered[0]);
+        if (idx >= 0) state.currentIndex = idx;
+      }
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function getUnansweredIds() {
+      return QUESTIONS.filter((q) => !state.answers[q.id]).map((q) => q.id);
+    }
+
+    function selectAnswer(questionId, score) {
+      state.answers[questionId] = score;
+
+      if (state.view === 'quiz' && state.quizMode === 'single') {
+        const idx = QUESTIONS.findIndex((q) => q.id === questionId);
+        if (idx >= 0 && idx < QUESTIONS.length - 1) {
+          state.currentIndex = idx + 1;
+        }
+      }
+      render();
+    }
+
+    function setQuizMode(mode) {
+      state.quizMode = mode;
+      render();
+    }
+
+    function goToStep(index) {
+      if (index < 0 || index >= QUESTIONS.length) return;
+      state.currentIndex = index;
+      render();
+    }
+
+    function jumpToFirstUnanswered() {
+      const unanswered = getUnansweredIds();
+      if (unanswered.length === 0) {
+        showToast('全部 20 题均已完成作答，可点击“生成我的心动报告”');
+        return;
+      }
+      const firstId = unanswered[0];
+      if (state.quizMode === 'single') {
+        const idx = QUESTIONS.findIndex((q) => q.id === firstId);
+        if (idx >= 0) state.currentIndex = idx;
+      }
+      render();
+      scrollToQuestion(firstId);
+      showToast(`已定位到第 ${firstId} 题（共剩 ${unanswered.length} 题未答）`);
+    }
+
+    function submitQuiz() {
+      const unanswered = getUnansweredIds();
+      if (unanswered.length > 0) {
+        showToast(`还有 ${unanswered.length} 题未选择（首个未答：第 ${unanswered[0]} 题）`);
+        if (state.quizMode === 'single') {
+          const idx = QUESTIONS.findIndex((q) => q.id === unanswered[0]);
+          if (idx >= 0) state.currentIndex = idx;
+        }
+        render();
+        scrollToQuestion(unanswered[0]);
+        return;
+      }
+      state.view = 'report';
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToQuestion(qId) {
+      setTimeout(() => {
+        const el = document.getElementById(`q-card-${qId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 60);
+    }
+
+    function retakeQuiz() {
+      state.answers = {};
+      state.currentIndex = 0;
+      state.view = 'intro';
+      showToast('已清空本次作答，可重新开始测试');
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetAllData() {
+      state.view = 'intro';
+      state.quizMode = 'single';
+      state.currentIndex = 0;
+      state.answers = {};
+      showToast('已重置为初始状态');
+      render();
+    }
+
+    /**
+     * 严格按照计分与定型规则计算结果：
+     * - M1 = 1~5题之和（5~20分）；M2 = 6~10题之和（5~20分）；M3 = 11~15题之和（5~20分）；M4 = 16~20题之和（5~20分）。
+     * - F_filter = M1 + M2 + M3（15~60分）；R_real = M4（5~20分）。
+     * - 找出 M1, M2, M3 中的最高分维度（若并列，优先按 M1 > M2 > M3 排序，并在报告中标注“双核叠加”提示）。
+     * - 若 F_filter >= 40 且最高维为 M1 或 M3 -> 【浪漫滤镜投射型】；状态标签根据 F_filter 细分（>=50 为“高滤镜上头期”，44~49 为“理想化投射期”，40~43 为“落差觉察期”）。
+     * - 若 F_filter >= 40 且最高维为 M2 -> 【情绪上头寄托型】；状态标签根据 F_filter 细分（>=50 为“高情绪波动期”，44~49 为“寄托牵引期”，40~43 为“敏感升温期”）。
+     * - 若 F_filter <= 26 且 R_real >= 14 -> 【真实看见靠近型】；状态标签根据 R_real 细分（>=18 为“清醒心动期”，16~17 为“真实了解期”，14~15 为“平稳靠近期”）。
+     * - 其余情况（包括 27 <= F_filter <= 39 或边界交叉区） -> 【心动摇摆观察型】；状态标签根据 F_filter 细分（>=35 为“好感观望期”，30~34 为“摇摆权衡期”，<=29 为“慢慢靠近期”）。
+     */
+    function calculateScores() {
+      const dimScores = { M1: 0, M2: 0, M3: 0, M4: 0 };
+      QUESTIONS.forEach((q) => {
+        const val = state.answers[q.id] || 0;
+        dimScores[q.dim] += val;
+      });
+
+      const F_filter = dimScores.M1 + dimScores.M2 + dimScores.M3;
+      const R_real = dimScores.M4;
+
+      // 在 M1, M2, M3 中按 M1 > M2 > M3 优先级寻找最高分维度
+      const filterPriority = ['M1', 'M2', 'M3'];
+      let maxFilterDimScore = -1;
+      let topFilterDim = 'M1';
+
+      filterPriority.forEach((dimKey) => {
+        const sc = dimScores[dimKey];
+        if (sc > maxFilterDimScore) {
+          maxFilterDimScore = sc;
+          topFilterDim = dimKey;
+        }
+      });
+
+      const tiedFilterDims = ['M1', 'M2', 'M3'].filter((d) => dimScores[d] === maxFilterDimScore);
+      const isDualCore = F_filter >= 40 && tiedFilterDims.length > 1;
+      const tiedNames = tiedFilterDims.map((d) => `${DIMENSIONS[d].name}（${d}）`).join('、');
+
+      let matchedTypeKey = 'TYPE_3';
+      let statusLabel = '摇摆权衡期';
+
+      if (F_filter >= 40 && (topFilterDim === 'M1' || topFilterDim === 'M3')) {
+        matchedTypeKey = 'TYPE_1';
+        if (F_filter >= 50) {
+          statusLabel = '高滤镜上头期';
+        } else if (F_filter >= 44) {
+          statusLabel = '理想化投射期';
+        } else {
+          statusLabel = '落差觉察期';
+        }
+      } else if (F_filter >= 40 && topFilterDim === 'M2') {
+        matchedTypeKey = 'TYPE_2';
+        if (F_filter >= 50) {
+          statusLabel = '高情绪波动期';
+        } else if (F_filter >= 44) {
+          statusLabel = '寄托牵引期';
+        } else {
+          statusLabel = '敏感升温期';
+        }
+      } else if (F_filter <= 26 && R_real >= 14) {
+        matchedTypeKey = 'TYPE_4';
+        if (R_real >= 18) {
+          statusLabel = '清醒心动期';
+        } else if (R_real >= 16) {
+          statusLabel = '真实了解期';
+        } else {
+          statusLabel = '平稳靠近期';
+        }
+      } else {
+        matchedTypeKey = 'TYPE_3';
+        if (F_filter >= 35) {
+          statusLabel = '好感观望期';
+        } else if (F_filter >= 30) {
+          statusLabel = '摇摆权衡期';
+        } else {
+          statusLabel = '慢慢靠近期';
+        }
+      }
+
+      return {
+        dimScores,
+        F_filter,
+        R_real,
+        topFilterDim,
+        maxFilterDimScore,
+        isDualCore,
+        tiedNames,
+        matchedTypeKey,
+        statusLabel,
+      };
+    }
+
+    function getDimLevelInfo(dimKey, score, res) {
+      if (dimKey === 'M4') {
+        if (score >= 16) {
+          return {
+            tag: '核心优势维度',
+            badge: 'bg-sageSoft text-sageAccent border border-[#D4E6DF]',
+          };
+        }
+        if (score >= 12) {
+          return {
+            tag: '真实感稳健',
+            badge: 'bg-sageSoft text-sageAccent',
+          };
+        }
+        return {
+          tag: '清醒度待充能',
+          badge: 'bg-apricotSoft text-apricotAccent',
+        };
+      }
+
+      const isPrimarySource = dimKey === res.topFilterDim && res.F_filter >= 27;
+      if (isPrimarySource && score >= 14) {
+        return {
+          tag: '主要投射源',
+          badge: 'bg-pinkSoft text-coralPink border border-pinkBorder',
+        };
+      }
+      if (score >= 15) {
+        return {
+          tag: '高投射波动',
+          badge: 'bg-pinkSoft text-coralPink',
+        };
+      }
+      if (score >= 10) {
+        return {
+          tag: '中度期待感',
+          badge: 'bg-lilacSoft text-lilacAccent',
+        };
+      }
+      return {
+        tag: '相对理性',
+        badge: 'bg-sageSoft text-sageAccent',
+      };
+    }
+
+    function copyReportSummary() {
+      try {
+        const res = calculateScores();
+        const report = REPORT_TYPES[res.matchedTypeKey];
+        const summaryLines = [
+          '【心动觉察测评报告】',
+          '测评主题：《你现在的心动，是“看见真实的人”，还是“滤镜与投射”？》',
+          `心动主类型：${report.typeName}（${res.statusLabel}）`,
+          `核心指标：滤镜投射指数 ${res.F_filter}/60 分 ｜ 真实看见指数 ${res.R_real}/20 分`,
+          `四维得分：M1=${res.dimScores.M1}/20 · M2=${res.dimScores.M2}/20 · M3=${res.dimScores.M3}/20 · M4=${res.dimScores.M4}/20`,
+          `核心定调：${report.coreTone}`,
+          `专属建议：1.${report.suggestions[0].title}；2.${report.suggestions[1].title}；3.${report.suggestions[2].title}`,
+        ];
+        const textToCopy = summaryLines.join('\n');
+
+        const helper = document.getElementById('clipboardHelper');
+        if (!helper) {
+          showToast('暂无法访问剪贴板，请手动截图保存报告');
+          return;
+        }
+        helper.value = textToCopy;
+        helper.classList.remove('sr-only');
+        helper.select();
+        helper.setSelectionRange(0, textToCopy.length);
+        const ok = document.execCommand('copy');
+        helper.classList.add('sr-only');
+
+        if (ok) {
+          showToast('已复制心动报告摘要，可直接粘贴保存或分享');
+        } else {
+          showToast('复制未成功，建议直接长按或截图保存当前报告页');
+        }
+      } catch (err) {
+        showToast('复制遇到小状况，建议直接截图保存当前报告页');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderIntroView() {
+      const answeredCount = Object.keys(state.answers).length;
+      return `
+        <section class="space-y-4 fade-in">
+          <!-- 封面主视觉卡片 -->
+          <div class="rounded-[26px] bg-gradient-to-br from-[#FBEFF2] via-[#FFFDFB] to-[#FDF3EC] p-5 border border-[#F2DCE1] shadow-card space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs px-3 py-1 rounded-full bg-white/95 text-coralPink font-semibold border border-pinkBorder">
+                亲密关系心动觉察
+              </span>
+              <span class="text-xs text-inkMuted">20 题 · 约 3 分钟</span>
+            </div>
+            <h2 class="text-[20px] font-bold text-ink leading-snug">
+              你现在的心动，是“看见真实的人”，还是“滤镜与投射”？
+            </h2>
+            <p class="text-[13px] text-inkMuted leading-relaxed">
+              好感刚起时，人很容易被闪光点与浪漫想象吸引。花 3 分钟梳理你的四维心动构成，看看眼前的喜欢有多少来自真实相处，又有多少是温柔的滤镜。
+            </p>
+          </div>
+
+          <!-- 4 大测评维度简介 -->
+          <div class="grid grid-cols-2 gap-2.5">
+            ${Object.values(DIMENSIONS)
+              .map(
+                (dim) => `
+              <div class="rounded-2xl bg-white p-3.5 border border-[#EFE5E7] shadow-card space-y-1.5">
+                <span class="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium ${dim.badgeClass}">
+                  ${dim.id} · 5 题
+                </span>
+                <div class="text-[13px] font-semibold text-ink">${dim.name}</div>
+                <p class="text-[11px] text-inkMuted leading-normal">${dim.shortDesc}</p>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+
+          <!-- 作答说明与开始按钮 -->
+          <div class="rounded-[24px] bg-white p-4 border border-[#EFE5E7] space-y-3 shadow-card">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-ink">作答说明（20 题 / 约 3 分钟 / 1～4 分制）</span>
+              ${
+                answeredCount > 0
+                  ? `<span class="text-coralPink font-semibold">已答 ${answeredCount} / 20 题</span>`
+                  : `<span class="text-inkMuted">共 20 题</span>`
+              }
+            </div>
+            <p class="text-xs text-inkMuted leading-relaxed">
+              ${escapeHtml(INSTRUCTION_TEXT)}每题按出现频率选择 A（1分）～D（4分），无对错之分，请依直觉作答。
+            </p>
+            <div class="flex flex-col gap-2.5 pt-1">
+              <button
+                type="button"
+                onclick="startTest()"
+                class="w-full py-3.5 px-4 rounded-2xl bg-coralPink text-white text-sm font-semibold hover:bg-[#C96B7D] transition shadow-sm"
+              >
+                ${answeredCount > 0 && answeredCount < 20 ? `继续作答（已完成 ${answeredCount}/20 题）` : '开始测试'}
+              </button>
+              ${
+                answeredCount === 20
+                  ? `
+                <button
+                  type="button"
+                  onclick="navigateTo('report')"
+                  class="w-full py-3 px-4 rounded-2xl bg-pinkSoft text-coralPink border border-pinkBorder text-xs font-semibold hover:opacity-90 transition"
+                >
+                  查看我的心动报告
+                </button>
+              `
+                  : ''
+              }
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderOptionButtons(question) {
+      const selectedScore = state.answers[question.id];
+      return `
+        <div class="space-y-2 mt-3.5">
+          ${OPTIONS.map((opt) => {
+            const isSelected = selectedScore === opt.score;
+            return `
+              <button
+                type="button"
+                onclick="selectAnswer(${question.id}, ${opt.score})"
+                aria-pressed="${isSelected}"
+                class="w-full text-left px-3.5 py-3 rounded-2xl border text-[13px] transition flex items-center justify-between gap-2 ${
+                  isSelected
+                    ? 'bg-pinkSoft border-coralPink text-ink font-semibold shadow-[0_2px_10px_rgba(217,123,141,0.14)]'
+                    : 'bg-white border-[#EFE5E7] text-ink hover:border-mistPink hover:bg-[#FFF9FA]'
+                }"
+              >
+                <span class="leading-snug">${escapeHtml(opt.label)}</span>
+                <span class="w-5 h-5 rounded-full border flex items-center justify-center text-[11px] shrink-0 ${
+                  isSelected
+                    ? 'bg-coralPink border-coralPink text-white'
+                    : 'border-[#D8CACE] text-inkMuted'
+                }">
+                  ${isSelected ? '✓' : opt.key}
+                </span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderSingleQuestionCard(question, index) {
+      const dim = DIMENSIONS[question.dim];
+      return `
+        <div id="q-card-${question.id}" class="rounded-[24px] bg-white p-4 border border-[#EFE5E7] shadow-card fade-in">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-[11px] px-2.5 py-0.5 rounded-full font-medium ${dim.badgeClass}">
+              ${escapeHtml(dim.fullTitle)}
+            </span>
+            <span class="text-xs font-medium text-inkMuted shrink-0">${index + 1} / ${QUESTIONS.length}</span>
+          </div>
+          <p class="text-[11px] text-inkMuted mb-2.5">${escapeHtml(INSTRUCTION_TEXT)}</p>
+          <h3 class="text-[15px] font-semibold text-ink leading-relaxed">
+            ${question.id}. ${escapeHtml(question.text)}
+          </h3>
+          ${renderOptionButtons(question)}
+        </div>
+      `;
+    }
+
+    function renderQuizView() {
+      const answeredCount = Object.keys(state.answers).length;
+      const unansweredCount = QUESTIONS.length - answeredCount;
+      const progressPercent = Math.round((answeredCount / QUESTIONS.length) * 100);
+      const currentQ = QUESTIONS[state.currentIndex] || QUESTIONS[0];
+
+      const groupedByDim = ['M1', 'M2', 'M3', 'M4'].map((dimKey) => ({
+        dim: DIMENSIONS[dimKey],
+        items: QUESTIONS.filter((q) => q.dim === dimKey),
+      }));
+
+      return `
+        <section class="space-y-4 fade-in">
+          <!-- 顶部进度条与作答模式切换 -->
+          <div class="rounded-2xl bg-white p-3.5 border border-[#EFE5E7] shadow-card space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-ink">
+                已答 ${answeredCount} / ${QUESTIONS.length} 题（${progressPercent}%）
+              </span>
+              <div class="inline-flex rounded-xl bg-[#F4ECEE] p-0.5 text-[11px]">
+                <button
+                  type="button"
+                  onclick="setQuizMode('single')"
+                  class="px-2.5 py-1 rounded-lg font-medium transition ${
+                    state.quizMode === 'single' ? 'bg-white text-ink shadow-xs' : 'text-inkMuted'
+                  }"
+                >
+                  逐题作答
+                </button>
+                <button
+                  type="button"
+                  onclick="setQuizMode('all')"
+                  class="px-2.5 py-1 rounded-lg font-medium transition ${
+                    state.quizMode === 'all' ? 'bg-white text-ink shadow-xs' : 'text-inkMuted'
+                  }"
+                >
+                  全卷浏览
+                </button>
+              </div>
+            </div>
+
+            <div class="w-full h-2 rounded-full bg-[#F1E6E8] overflow-hidden">
+              <div class="h-full rounded-full bg-coralPink bar-fill" style="width: ${progressPercent}%"></div>
+            </div>
+          </div>
+
+          ${
+            state.quizMode === 'single'
+              ? `
+            <!-- 逐题作答模式 -->
+            ${renderSingleQuestionCard(currentQ, state.currentIndex)}
+
+            <!-- 题号导航点阵 -->
+            <div class="rounded-2xl bg-white p-3.5 border border-[#EFE5E7] shadow-card">
+              <div class="flex items-center justify-between text-[11px] text-inkMuted mb-2">
+                <span>题号速览（点击可修改）：</span>
+                ${
+                  unansweredCount > 0
+                    ? `<button type="button" onclick="jumpToFirstUnanswered()" class="text-coralPink font-semibold hover:underline">定位未答题（剩${unansweredCount}题）</button>`
+                    : `<span class="text-sageAccent font-semibold">全部 20 题已答完</span>`
+                }
+              </div>
+              <div class="grid grid-cols-10 gap-1.5">
+                ${QUESTIONS.map((q, idx) => {
+                  const done = Boolean(state.answers[q.id]);
+                  const active = idx === state.currentIndex;
+                  return `
+                    <button
+                      type="button"
+                      onclick="goToStep(${idx})"
+                      class="h-7 rounded-lg text-[11px] font-medium transition ${
+                        active
+                          ? 'bg-coralPink text-white'
+                          : done
+                          ? 'bg-pinkSoft text-coralPink border border-pinkBorder'
+                          : 'bg-cream text-inkMuted border border-[#ECE2E4]'
+                      }"
+                    >
+                      ${q.id}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- 底部操作栏 -->
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <button
+                type="button"
+                onclick="goToStep(${state.currentIndex - 1})"
+                ${state.currentIndex === 0 ? 'disabled' : ''}
+                class="py-3 px-3.5 rounded-2xl border border-[#E6DADC] bg-white text-ink text-xs font-semibold disabled:opacity-40 hover:bg-[#FAF5F6] transition"
+              >
+                上一题
+              </button>
+              ${
+                state.currentIndex < QUESTIONS.length - 1
+                  ? `
+                <button
+                  type="button"
+                  onclick="goToStep(${state.currentIndex + 1})"
+                  class="py-3 px-3.5 rounded-2xl border border-pinkBorder bg-pinkSoft text-coralPink text-xs font-semibold hover:bg-mistPink hover:text-white transition"
+                >
+                  下一题
+                </button>
+              `
+                  : ''
+              }
+              <button
+                type="button"
+                onclick="submitQuiz()"
+                class="flex-1 py-3 px-3 rounded-2xl bg-coralPink text-white text-xs font-semibold hover:bg-[#C96B7D] transition shadow-sm"
+              >
+                生成我的心动报告
+              </button>
+            </div>
+          `
+              : `
+            <!-- 全卷浏览模式 -->
+            <div class="rounded-2xl bg-pinkSoft/75 px-3.5 py-2.5 border border-pinkBorder text-xs text-ink flex items-center justify-between gap-2">
+              <span>${escapeHtml(INSTRUCTION_TEXT)}</span>
+              ${
+                unansweredCount > 0
+                  ? `<button type="button" onclick="jumpToFirstUnanswered()" class="shrink-0 text-[11px] px-2.5 py-1 rounded-full bg-white text-coralPink font-semibold border border-pinkBorder">定位未答(${unansweredCount})</button>`
+                  : `<span class="shrink-0 text-[11px] text-sageAccent font-semibold">已全答</span>`
+              }
+            </div>
+
+            ${groupedByDim
+              .map(
+                (group) => `
+              <div class="space-y-3 pt-1">
+                <div class="sticky top-[52px] z-10 bg-creamCard/95 backdrop-blur py-2 px-3 rounded-xl border border-[#EFE5E7]">
+                  <span class="text-xs font-bold text-ink">${escapeHtml(group.dim.fullTitle)}</span>
+                </div>
+                ${group.items
+                  .map((q) => {
+                    const selectedScore = state.answers[q.id];
+                    return `
+                      <div id="q-card-${q.id}" class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card">
+                        <h3 class="text-sm font-semibold text-ink leading-relaxed">
+                          ${q.id}. ${escapeHtml(q.text)}
+                        </h3>
+                        <div class="mt-2.5 grid grid-cols-1 gap-1.5">
+                          ${OPTIONS.map((opt) => {
+                            const isSelected = selectedScore === opt.score;
+                            return `
+                              <button
+                                type="button"
+                                onclick="selectAnswer(${q.id}, ${opt.score})"
+                                aria-pressed="${isSelected}"
+                                class="w-full text-left px-3 py-2.5 rounded-xl border text-xs transition flex items-center justify-between gap-2 ${
+                                  isSelected
+                                    ? 'bg-pinkSoft border-coralPink text-ink font-semibold'
+                                    : 'bg-white border-[#EFE5E7] text-ink hover:border-mistPink'
+                                }"
+                              >
+                                <span>${escapeHtml(opt.label)}</span>
+                                <span class="text-[11px] font-semibold ${isSelected ? 'text-coralPink' : 'text-inkMuted'}">
+                                  ${isSelected ? '已选' : opt.key}
+                                </span>
+                              </button>
+                            `;
+                          }).join('')}
+                        </div>
+                      </div>
+                    `;
+                  })
+                  .join('')}
+              </div>
+            `
+              )
+              .join('')}
+
+            <div class="flex gap-2 pt-2">
+              ${
+                unansweredCount > 0
+                  ? `
+                <button
+                  type="button"
+                  onclick="jumpToFirstUnanswered()"
+                  class="py-3.5 px-3.5 rounded-2xl border border-pinkBorder bg-pinkSoft text-coralPink text-xs font-semibold"
+                >
+                  跳转未答题
+                </button>
+              `
+                  : ''
+              }
+              <button
+                type="button"
+                onclick="submitQuiz()"
+                class="flex-1 py-3.5 px-4 rounded-2xl bg-coralPink text-white text-sm font-semibold hover:bg-[#C96B7D] transition shadow-sm"
+              >
+                生成我的心动报告（${answeredCount}/20）
+              </button>
+            </div>
+          `
+          }
+        </section>
+      `;
+    }
+
+    function renderReportView() {
+      const res = calculateScores();
+      const report = REPORT_TYPES[res.matchedTypeKey];
+
+      return `
+        <section class="space-y-4 fade-in">
+          <!-- 顶部结果徽章卡 -->
+          <div class="rounded-[26px] bg-gradient-to-br from-[#FBEFF2] via-[#FFFDFB] to-[#FDF3EC] p-5 border border-[#F2DCE1] shadow-card space-y-3.5">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs px-3 py-1 rounded-full bg-white text-coralPink font-semibold border border-pinkBorder">
+                专属心动分析报告
+              </span>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${
+                  res.isDualCore
+                    ? `<span class="text-[11px] px-2.5 py-0.5 rounded-full bg-lilacSoft text-lilacAccent font-semibold border border-[#E2D9EE]">双核叠加</span>`
+                    : ''
+                }
+                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-apricotSoft text-apricotAccent font-semibold border border-[#F3DEC9]">
+                  ${escapeHtml(res.statusLabel)}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-xs text-inkMuted">心动主类型</div>
+              <h2 class="text-xl font-bold text-ink mt-0.5">
+                ${escapeHtml(report.typeName)}
+              </h2>
+              <p class="text-xs text-coralPink font-medium mt-0.5">${escapeHtml(report.tagDesc)}</p>
+              ${
+                res.isDualCore
+                  ? `<p class="text-[11px] text-lilacAccent mt-1.5 leading-relaxed bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#E7DFF2]">
+                      双核叠加提示：最高投射维度并列为 ${escapeHtml(res.tiedNames)}，已按优先级（M1 &gt; M2 &gt; M3）判定主类型。
+                    </p>`
+                  : ''
+              }
+            </div>
+
+            <!-- 双核心指标卡片 -->
+            <div class="grid grid-cols-2 gap-2.5 pt-0.5">
+              <div class="rounded-2xl bg-white/95 p-3 border border-[#F2E3E6]">
+                <div class="text-[11px] text-inkMuted">滤镜投射指数（M1+M2+M3）</div>
+                <div class="text-base font-bold text-ink mt-0.5">${res.F_filter} / 60 分</div>
+                <div class="text-[11px] text-coralPink font-medium mt-0.5">
+                  ${res.F_filter >= 40 ? '滤镜投射偏高' : res.F_filter <= 26 ? '滤镜投射较低' : '中等波动区间'}
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white/95 p-3 border border-[#E3EDE9]">
+                <div class="text-[11px] text-inkMuted">真实看见指数（M4）</div>
+                <div class="text-base font-bold text-ink mt-0.5">${res.R_real} / 20 分</div>
+                <div class="text-[11px] text-sageAccent font-medium mt-0.5">
+                  ${res.R_real >= 14 ? '真实看见稳健' : '真实感待加深'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 一、核心画像定调 -->
+          <div class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card space-y-2">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-coralPink"></span>
+              一、 核心画像定调
+            </h3>
+            <p class="text-[13px] text-ink leading-relaxed">
+              ${escapeHtml(report.coreTone)}
+            </p>
+          </div>
+
+          <!-- 二、4 维心动图谱 -->
+          <div class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card space-y-3.5">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-apricotAccent"></span>
+              二、 4 维心动图谱
+            </h3>
+
+            <div class="space-y-3">
+              ${['M1', 'M2', 'M3', 'M4']
+                .map((dimKey) => {
+                  const dim = DIMENSIONS[dimKey];
+                  const score = res.dimScores[dimKey];
+                  const pct = Math.round((score / 20) * 100);
+                  const levelInfo = getDimLevelInfo(dimKey, score, res);
+                  return `
+                    <div class="rounded-2xl bg-cream p-3 border border-[#F0E7E9] space-y-1.5">
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold text-ink">
+                          ${escapeHtml(dim.name)}（${dim.id}）
+                        </span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <span class="text-[11px] px-2 py-0.5 rounded-full font-medium ${levelInfo.badge}">
+                            ${escapeHtml(levelInfo.tag)}
+                          </span>
+                          <span class="text-xs font-bold text-ink">${score} / 20 分</span>
+                        </div>
+                      </div>
+                      <div class="w-full h-2.5 rounded-full bg-[#ECE0E3] overflow-hidden">
+                        <div class="h-full rounded-full ${dim.barClass} bar-fill" style="width: ${pct}%"></div>
+                      </div>
+                      <p class="text-[11px] text-inkMuted leading-normal">
+                        ${escapeHtml(dim.shortDesc)}
+                      </p>
+                    </div>
+                  `;
+                })
+                .join('')}
+            </div>
+          </div>
+
+          <!-- 三、2 个高频触发场景 -->
+          <div class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card space-y-3">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-mistPink"></span>
+              三、 2 个高频触发场景
+            </h3>
+            <div class="space-y-2.5">
+              ${report.scenarios
+                .map(
+                  (sc, idx) => `
+                <div class="rounded-2xl bg-cream p-3.5 border border-[#F0E7E9] space-y-1">
+                  <div class="text-xs font-bold text-ink">${idx + 1}. ${escapeHtml(sc.title)}</div>
+                  <p class="text-xs text-inkMuted leading-relaxed">${escapeHtml(sc.desc)}</p>
+                </div>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+
+          <!-- 四、2 个容易忽略的隐形盲点 -->
+          <div class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card space-y-3">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-lilacAccent"></span>
+              四、 2 个容易忽略的隐形盲点
+            </h3>
+            <div class="space-y-2.5">
+              ${report.blindSpots
+                .map(
+                  (bs, idx) => `
+                <div class="rounded-2xl bg-lilacSoft/65 p-3.5 border border-[#E5DDF0] space-y-1">
+                  <div class="text-xs font-bold text-ink">${idx + 1}. ${escapeHtml(bs.title)}</div>
+                  <p class="text-xs text-inkMuted leading-relaxed">${escapeHtml(bs.desc)}</p>
+                </div>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+
+          <!-- 五、3 条低成本止损与回血建议 -->
+          <div class="rounded-2xl bg-white p-4 border border-[#EFE5E7] shadow-card space-y-3">
+            <h3 class="text-sm font-bold text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-sageAccent"></span>
+              五、 3 条低成本止损与回血建议
+            </h3>
+            <div class="space-y-2.5">
+              ${report.suggestions
+                .map(
+                  (sg, idx) => `
+                <div class="rounded-2xl bg-sageSoft/70 p-3.5 border border-[#D8E7E1] space-y-1">
+                  <div class="text-xs font-bold text-ink">${idx + 1}. ${escapeHtml(sg.title)}</div>
+                  <p class="text-xs text-inkMuted leading-relaxed">${escapeHtml(sg.desc)}</p>
+                </div>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+
+          <!-- 底部操作按钮 -->
+          <div class="flex gap-2.5 pt-1">
+            <button
+              type="button"
+              onclick="copyReportSummary()"
+              class="flex-1 py-3.5 px-3.5 rounded-2xl bg-pinkSoft text-coralPink border border-pinkBorder text-xs font-semibold hover:bg-mistPink hover:text-white transition"
+            >
+              保存/复制报告摘要
+            </button>
+            <button
+              type="button"
+              onclick="retakeQuiz()"
+              class="flex-1 py-3.5 px-3.5 rounded-2xl bg-coralPink text-white text-xs font-semibold hover:bg-[#C96B7D] transition shadow-sm"
+            >
+              重新测试
+            </button>
+          </div>
+        </section>
+      `;
+    }
+
+    function render() {
+      const mainEl = document.getElementById('mainContent');
+      if (!mainEl) return;
+
+      if (state.view === 'quiz') {
+        mainEl.innerHTML = renderQuizView();
+      } else if (state.view === 'report') {
+        mainEl.innerHTML = renderReportView();
+      } else {
+        mainEl.innerHTML = renderIntroView();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        render();
+      } catch (err) {
+        const mainEl = document.getElementById('mainContent');
+        if (mainEl) {
+          mainEl.innerHTML = `
+            <div class="rounded-2xl bg-pinkSoft p-4 text-xs text-ink">
+              页面渲染遇到小状况，请点击底部“重置进度”恢复。
+            </div>
+          `;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
