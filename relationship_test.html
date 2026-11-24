@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f6f1eb">
+<title>在感情里，你是在爱对方，还是在害怕失去？</title>
+<style>
+:root{--bg:#f6f1eb;--paper:#fffdf9;--ink:#292622;--muted:#827a72;--line:#e9e0d7;--rose:#b86f68;--rose2:#f3e3df;--green:#738675;--green2:#e8eee8;--gold:#b28a55;--shadow:0 18px 55px rgba(67,49,35,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+button{font:inherit;cursor:pointer}.wrap{max-width:850px;margin:auto;padding:28px 18px 70px}.hero{text-align:center;padding:42px 22px 30px}.eyebrow{font-size:12px;letter-spacing:.2em;color:var(--rose);font-weight:700}.hero h1{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(27px,5vw,42px);line-height:1.3;margin:15px 0 12px;font-weight:600}.hero p{max-width:590px;margin:0 auto;color:var(--muted);font-size:15px}.pill{display:inline-block;margin-top:22px;border:1px solid var(--line);border-radius:99px;padding:5px 13px;color:var(--muted);font-size:12px;background:#ffffff80}
+.panel{background:var(--paper);border:1px solid #eee6de;border-radius:22px;box-shadow:var(--shadow);padding:clamp(20px,4vw,34px)}.intro{display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center}.intro strong{font-size:17px}.intro small{color:var(--muted)}.startbtn,.primary{border:0;border-radius:999px;background:var(--ink);color:white;padding:12px 24px;font-weight:650}.startbtn:hover,.primary:hover{background:#51453d}.note{margin-top:24px;padding:15px 17px;border-radius:14px;background:#f7f2ec;color:#6e655d;font-size:13px}.progressbox{margin-bottom:25px}.progressline{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:9px}.track{height:6px;border-radius:10px;background:#eee7df;overflow:hidden}.fill{height:100%;width:0;background:var(--rose);transition:width .25s}
+.dimension{display:flex;align-items:center;gap:10px;margin:4px 0 10px;color:var(--rose);font-size:12px;letter-spacing:.08em;font-weight:700}.dimension:before{content:"";width:22px;height:1px;background:var(--rose)}.question{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(19px,3vw,23px);line-height:1.55;margin:0 0 23px}.choices{display:grid;gap:11px}.choice{width:100%;text-align:left;border:1px solid var(--line);background:white;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:13px;transition:.18s;color:var(--ink)}.choice:hover{border-color:#c99b94;background:#fffaf8}.choice.selected{border-color:var(--rose);background:var(--rose2)}.letter{width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:#f3eee8;color:#756b62;font-weight:700;flex:none}.selected .letter{background:var(--rose);color:white}.choice span:last-child{font-size:14px}.nav{display:flex;justify-content:space-between;gap:12px;margin-top:27px}.secondary{border:1px solid var(--line);background:transparent;border-radius:999px;padding:11px 20px;color:var(--muted)}button:disabled{opacity:.35;cursor:not-allowed}.hidden{display:none!important}
+.result-head{text-align:center;padding:12px 0 25px}.result-head .eyebrow{margin-bottom:8px}.result-head h2{font-family:"Songti SC","Noto Serif SC",serif;font-size:32px;margin:6px 0}.result-head p{color:var(--muted);margin:4px auto;max-width:580px}.scores{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 25px}.score{padding:16px;border-radius:15px;background:#f7f2ec;text-align:center}.score b{display:block;font-size:27px;line-height:1.3}.score span{font-size:12px;color:var(--muted)}.bars{display:grid;gap:15px;margin:20px 0 30px}.barrow{display:grid;grid-template-columns:150px 1fr 42px;gap:10px;align-items:center;font-size:13px}.bartrack{height:9px;background:#eee8e1;border-radius:20px;overflow:hidden}.barfill{height:100%;border-radius:20px;background:var(--rose)}.barrow:last-child .barfill{background:var(--green)}.section{border-top:1px solid var(--line);padding:23px 0 4px}.section h3{font-size:16px;margin:0 0 12px}.section p{margin:0;color:#5e5750;font-size:14px}.section ol{padding-left:20px;margin:8px 0;color:#5e5750;font-size:14px}.section li{padding:3px 0}.advice{display:grid;gap:10px}.advice div{padding:13px 15px;border-radius:13px;background:#f7f2ec;font-size:14px;color:#5e5750}.disclaimer{font-size:12px;color:#968d84;margin-top:22px}.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:27px}.actions button{min-width:130px}.sharehint{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}.restart{background:transparent;color:var(--ink);border:1px solid var(--line)}.footer{text-align:center;color:#a59b91;font-size:11px;margin-top:25px}
+@media(max-width:560px){.wrap{padding:12px 12px 45px}.hero{padding:34px 10px 25px}.panel{border-radius:18px}.intro{grid-template-columns:1fr}.startbtn{width:100%}.barrow{grid-template-columns:112px 1fr 34px;gap:7px;font-size:12px}.result-head h2{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">RELATIONSHIP INSIGHT · 20 QUESTIONS</div>
+  <h1>在感情里，你是在爱对方，<br>还是在害怕失去？</h1>
+  <p>有时我们紧紧抓住一段关系，并不全是因为爱得深。用 20 道题，看看你的亲密关系里，安全感、委屈与自我托底分别处在什么位置。</p>
+  <div class="pill">约 3–5 分钟 · 无需注册 · 结果仅供自我觉察</div>
+</header>
+
+<main>
+<section id="intro" class="panel">
+  <div class="intro">
+    <div><strong>开始前，给自己一点诚实的空间</strong><br><small>请根据近期真实感受作答，而不是理想中的自己。</small></div>
+    <button class="startbtn" id="begin">开始测试 <span aria-hidden="true">→</span></button>
+  </div>
+  <div class="note">每题选择最贴近你的一项：A 几乎没有（1分） · B 偶尔这样（2分） · C 经常这样（3分） · D 几乎总是（4分）。第 16–20 题同样按 1–4 分计分，分数越高代表自我托底与滋养能力越强。</div>
+</section>
+
+<section id="quiz" class="panel hidden" aria-live="polite">
+  <div class="progressbox">
+    <div class="progressline"><span id="qcount">第 1 / 20 题</span><span id="pct">5%</span></div>
+    <div class="track"><div class="fill" id="progress"></div></div>
+  </div>
+  <div class="dimension" id="dimension"></div>
+  <h2 class="question" id="question"></h2>
+  <div class="choices" id="choices"></div>
+  <div class="nav">
+    <button class="secondary" id="prev">← 上一题</button>
+    <button class="primary" id="next" disabled>下一题 →</button>
+  </div>
+</section>
+
+<section id="result" class="panel hidden" aria-live="polite">
+  <div id="resultContent"></div>
+</section>
+</main>
+<div class="footer">这是一份自我探索工具，不是心理诊断或对关系好坏的定论。</div>
+</div>
+<script>
+const questions = [
+["不安与患得患失","对方回消息变慢或语气稍显平淡时，我脑子里会立刻冒出“是不是不喜欢我了 / 要疏远我了”的念头。"],
+["不安与患得患失","当关系进入平稳期、少了热恋时的热烈表达时，我容易觉得没有安全感，忍不住想确认对方的心意。"],
+["不安与患得患失","看到对方和异性互动、有新的社交圈或自己的生活重心时，我心里会升起明显的防备或慌张。"],
+["不安与患得患失","我经常会去翻看聊天记录、动态或过往细节，试图从中印证“对方到底有多在乎我”。"],
+["不安与患得患失","只要想到“万一有一天分开怎么办”，我的情绪就会瞬间沉下去，甚至提前感到难过。"],
+["过度迎合与委屈留人","怕引起冲突或让对方不开心，我经常把自己的委屈、不满和真实需求先咽下去。"],
+["过度迎合与委屈留人","哪怕有些事我并不愿意，只要觉得“这样做能留住对方 / 讨对方欢心”，我还是会勉强答应。"],
+["过度迎合与委屈留人","吵架或闹矛盾时，即便错不在我，我也常先低头、先道歉，只求尽快把关系拉回正常。"],
+["过度迎合与委屈留人","在这段关系里，我慢慢把自己的作息、爱好和社交圈向对方靠拢，甚至有点弄丢原来的自己。"],
+["过度迎合与委屈留人","付出很多之后，当我心里涌起“我这么对你，你怎么还不……”的委屈时，往往觉得自己是在替这段关系买单。"],
+["控制紧绷与试探索取","我希望随时知道对方的行踪、想法或情绪变化，一旦失去掌控感就会坐立不安。"],
+["控制紧绷与试探索取","有时候我会故意说反话、冷处理或制造一点小摩擦，想看看对方会不会来哄我、挽留我。"],
+["控制紧绷与试探索取","我会反复追问“你爱我吗”“你觉得我哪里好”，需要靠源源不断的肯定才能暂时安心。"],
+["控制紧绷与试探索取","当对方需要独处或稍微保持距离时，我容易把它解读成“推开我”或“不在乎我”。"],
+["控制紧绷与试探索取","在关系里，我常常觉得自己像是在抓着一根快滑走的绳子，越用力抓，手心越疼。"],
+["松弛共情与自我托底","我能看见对方的真实状态与需求，也尊重彼此不同的节奏，不需要对方时时刻刻围着我转。"],
+["松弛共情与自我托底","即使有分歧或摩擦，我也愿意坦诚沟通自己的感受，而不是靠猜心、忍耐或试探去消耗彼此。"],
+["松弛共情与自我托底","就算这段关系未来出现变化，我也相信自己有能力照顾好生活与情绪，不会因此彻底垮掉。"],
+["松弛共情与自我托底","我喜欢和对方一起分享生活、互相成就，而不是把对方当成填补孤独或焦虑的救命稻草。"],
+["松弛共情与自我托底","在这段感情里，我既能好好爱对方，也能稳稳地爱自己，关系让我感到滋养多于紧绷。"]
+];
+const options=[["A","几乎没有",1],["B","偶尔这样",2],["C","经常这样",3],["D","几乎总是",4]];
+let answers=Array(20).fill(0), current=0;
+const $=id=>document.getElementById(id);
+function showQuestion(){
+ const [dim,q]=questions[current]; $("dimension").textContent=`维度 ${current<5?"一":current<10?"二":current<15?"三":"四"} · ${dim}`;
+ $("question").textContent=`${current+1}. ${q}`;
+ $("qcount").textContent=`第 ${current+1} / 20 题`; $("pct").textContent=`${Math.round((current+1)/20*100)}%`;
+ $("progress").style.width=`${(current+1)/20*100}%`;
+ $("choices").innerHTML="";
+ options.forEach(([letter,label,value])=>{
+   const b=document.createElement("button"); b.className="choice"+(answers[current]===value?" selected":"");
+   b.innerHTML=`<span class="letter">${letter}</span><span>${label}（${value} 分）</span>`;
+   b.onclick=()=>{answers[current]=value;showQuestion();}; $("choices").appendChild(b);
+ });
+ $("prev").disabled=current===0; $("next").disabled=!answers[current];
+ $("next").textContent=current===19?"查看我的结果 →":"下一题 →";
+}
+$("begin").onclick=()=>{$("intro").classList.add("hidden");$("quiz").classList.remove("hidden");showQuestion();};
+$("prev").onclick=()=>{if(current>0){current--;showQuestion();}};
+$("next").onclick=()=>{if(!answers[current])return;if(current<19){current++;showQuestion();}else renderResult();};
+function renderResult(){
+ const sums=[0,0,0,0]; for(let i=0;i<20;i++)sums[Math.floor(i/5)]+=answers[i];
+ const [A1,A2,A3,S]=sums,F=A1+A2+A3;
+ let max=Math.max(A1,A2,A3), tied=[A1,A2,A3].filter(x=>x===max).length>1;
+ // Primary classification follows the supplied thresholds; uncovered combinations receive the closest sensible profile.
+ let type,desc,status,core,triggers,blind,advice;
+ if(F>=40){
+   type=(A1===max||A3===max)?"紧抓防丢型":"委屈讨好型";
+   if(tied) type="紧抓防丢型";
+ } else if(F>=27 && S<=13){type="摇摆拉扯型";}
+ else if(F<=26 && S>=14){type="滋养托底型";}
+ else if(F<=26){type="摇摆拉扯型";}
+ else {type="滋养托底型";}
+ const data={
+ "紧抓防丢型":{
+ desc:"你的情绪雷达对关系变化比较敏感。你可能很在乎对方，也很想确认彼此的连接；但当不确定感出现时，容易用反复确认、紧盯细节的方式让自己安心。",
+ status:F>=48?"高警觉紧绷期":F>=40?"阶段性患得患失期":"温和波动期",
+ core:"你在感情里投入了很深的情绪关注，但动力中可能夹杂着怕变淡、怕被冷落、怕抓不住。越想抓紧确认，有时反而越容易让双方紧绷。",
+ triggers:["对方回复变慢或生活节奏切换时：容易把时间差理解成心意变化，反复琢磨或追问。","关系趋于平淡或出现分歧时：容易担心爱意减弱，转而紧盯细节或测试对方。"],
+ blind:["把查证与紧抓误当成在乎：高频确认短期能缓解焦虑，长期却可能让关系变成一场证明题。","把脑补的危险当成正在发生的事实：担忧不一定等于现实恶化，先区分事实与猜测。"],
+ advice:["给焦虑设一个延迟 30 分钟规则：先暂停追问和翻记录，等情绪下降后再决定如何沟通。","把猜心和试探改成直接说需求，例如“我今天有点不安，想和你聊聊”。","重建没有伴侣也能稳定运转的日常锚点，保留运动、朋友、兴趣与独处时间。"]},
+ "委屈讨好型":{
+ desc:"你很愿意照顾对方，也可能习惯先把自己的感受放到后面。关系表面看似平静，心里却可能积累了没有说出口的委屈。",
+ status:F>=48?"高承压委屈期":F>=40?"习惯性迁就期":"温和调节期",
+ core:"你的付出可能带着“只要我够懂事，关系就不会出问题”的隐性前提。时间久了，委屈被吞下去，疲惫与失衡却不会自动消失。",
+ triggers:["意见不合或气氛微妙时：害怕冲突导致疏远，习惯先退一步，即使心里并不认同。","自己需要被理解却不便开口时：担心提要求会添麻烦，于是习惯说“我没事”。"],
+ blind:["把委屈忍让误当成爱得深沉：爱不需要靠不断牺牲自我来证明。","把不提需求误当成体贴：对方可能并不知道你真正需要什么。"],
+ advice:["从小事开始练习不勉强自己，温和表达真实想法。","用“我感到……我希望……”代替指责、憋屈和翻旧账。","每天留一点只为自己开心的时间，提醒自己需求同样重要。"]},
+ "摇摆拉扯型":{
+ desc:"你既渴望亲密，也容易被关系细节牵动。你可能在靠近与退缩、信任与担心之间来回切换；这不代表你不懂爱，而是安全感仍在建立。",
+ status:F>=34?"情绪拉扯期":"敏感调整期",
+ core:"你在感情里既有渴望靠近、好好相处的真诚，也有容易被细节牵动的一面。内在安全感还在搭建时，便容易在信任与担忧之间摇摆。",
+ triggers:["关系热度起伏或沟通不顺时：可能因为一句话、一个眼神反复推敲，情绪上下起伏。","面临更深承诺或现实考验时：既想确定彼此位置，又担心投入后落空。"],
+ blind:["把情绪起伏误当成感情不够真：关系波动很常见，也可能与疲惫和压力有关。","在想靠近与怕受伤之间耗尽精力：长期防备会让关系停留在疲惫的拉扯里。"],
+ advice:["先安抚情绪，再做关系判断；情绪上头时暂缓重大结论。","把模糊担忧写成具体问题，辨认自己究竟在怕什么。","建立稳定的日常节奏，让生活不只围绕关系波动。"]},
+ "滋养托底型":{
+ desc:"你整体拥有较好的自我支撑能力，更倾向于在亲密与独立之间保持平衡。关系可以重要，但不必成为你全部安全感的来源。",
+ status:F>=34?"持续成长型":S>=17?"平稳滋养期":"清晰边界期",
+ core:"你更倾向于以平等、尊重和真实的方式去喜欢一个人，而不是靠恐惧、紧抓或委屈维系关系。遇到波动时，也较能稳住自己的重心。",
+ triggers:["双方各自忙碌或意见不同时：更能理解彼此的独立空间，倾向沟通协商。","关系进入长久相处阶段时：更看重日常陪伴、共同成长与真实默契。"],
+ blind:["把独立变成过度疏离：适当示弱与分享，也能加深亲密。","忽略伴侣的不安信号：多一点耐心倾听，让彼此更贴近。"],
+ advice:["保留主动分享小事的习惯，让彼此保持情感流动。","在分歧中保持好奇而非对立，多问一句“你是怎么想的”。","继续守护各自的生活底色，相互靠近也各自扎根。"]}
+ };
+ ({desc,status,core,triggers,blind,advice}=data[type]);
+ const names=["不安与患得患失","过度迎合与委屈留人","控制紧绷与试探索取","松弛共情与自我托底"];
+ const scoreHTML=sums.map((v,i)=>`<div class="barrow"><span>${names[i]}</span><div class="bartrack"><div class="barfill" style="width:${v/20*100}%"></div></div><b>${v}/20</b></div>`).join("");
+ const list=(arr)=>arr.map(x=>`<li>${x}</li>`).join("");
+ const resultText=`我的关系测试结果：${type}\n害怕失去指数：${F}/60\n自我托底指数：${S}/20\n四维得分：A1 ${A1}/20、A2 ${A2}/20、A3 ${A3}/20、B1 ${S}/20\n${desc}\n（仅供自我觉察，不构成心理诊断。）`;
+ $("resultContent").innerHTML=`
+ <div class="result-head"><div class="eyebrow">YOUR RELATIONSHIP PROFILE</div><h2>你的关系主类型：${type}</h2><p>${desc}</p><div class="pill">${status}</div></div>
+ <div class="scores"><div class="score"><b>${F}<small style="font-size:14px"> / 60</small></b><span>害怕失去指数 F</span></div><div class="score"><b>${S}<small style="font-size:14px"> / 20</small></b><span>自我托底指数 S</span></div></div>
+ <div class="section"><h3>四维关系能量图谱</h3><div class="bars">${scoreHTML}</div></div>
+ <div class="section"><h3>你的核心画像</h3><p>${core}</p></div>
+ <div class="section"><h3>容易触发你的两个场景</h3><ol>${list(triggers)}</ol></div>
+ <div class="section"><h3>两个容易忽略的盲点</h3><ol>${list(blind)}</ol></div>
+ <div class="section"><h3>给自己的三条温柔建议</h3><div class="advice">${advice.map((x,i)=>`<div><b>0${i+1}.</b> ${x}</div>`).join("")}</div></div>
+ <p class="disclaimer">说明：本测试是依据你提供的自评题目与计分规则制作的非临床自我探索工具。它不能诊断依恋类型、心理障碍，也不能单独判断一段关系是否健康。结果反映的是你近期的主观体验，会随关系情境与个人状态变化。</p>
+ <div class="actions"><button class="primary" id="share">分享我的结果</button><button class="secondary" id="copy">复制结果文字</button><button class="secondary restart" id="again">重新测试</button></div><div class="sharehint">分享内容仅包含结果摘要，不附带测试网页链接。</div>`;
+ $("quiz").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});
+ $("share").onclick=async()=>{try{if(navigator.share)await navigator.share({title:"我的亲密关系测试结果",text:resultText});else{await navigator.clipboard.writeText(resultText);alert("结果摘要已复制，可以粘贴分享。");}}catch(e){}};
+ $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(resultText);alert("结果文字已复制！");}catch(e){alert("当前浏览器不支持自动复制，请手动选择结果文字。");}};
+ $("again").onclick=()=>{answers=Array(20).fill(0);current=0;$("result").classList.add("hidden");$("intro").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});};
+}
+</script>
+</body>
+</html>
